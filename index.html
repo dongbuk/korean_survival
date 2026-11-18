@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>치이카와의 모험 (시제품)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fdf6ec; --ink:#4a3b35; --soft:#6b5c55; --panel:#fffaf3; --line:#e8d9c8;
+  --pink:#f6a6b8; --pink-d:#e07890; --green:#7cc48a; --green-d:#4f9a5e;
+  --blue:#8fc3ec; --red:#e8746c; --gold:#f2c14e;
+  --font:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#cv{display:block;position:fixed;inset:0}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;
+  padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom));z-index:10}
+.ov.show{display:flex;animation:fadein .2s ease-out}
+.ov.dim{background:rgba(74,59,53,.45)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.panel.shake{animation:shake .35s ease-out}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+.panel{background:var(--panel);border:4px solid var(--line);border-radius:28px;padding:22px 24px;max-width:640px;width:100%;
+  max-height:100%;overflow:auto;box-shadow:0 10px 0 rgba(74,59,53,.12);animation:pop .25s ease-out;touch-action:pan-y}
+h1{margin:0 0 4px;font-size:clamp(30px,7vw,46px);font-weight:400;letter-spacing:1px}
+h2{margin:0 0 12px;font-size:26px;font-weight:400}
+p{margin:6px 0;line-height:1.5}
+.sub{color:var(--soft);font-size:15px}
+.btn{font-family:var(--font);font-size:20px;border:0;border-radius:18px;padding:12px 20px;min-height:48px;cursor:pointer;
+  background:var(--pink);color:var(--ink);box-shadow:0 5px 0 var(--pink-d);transition:transform .08s, box-shadow .08s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--pink-d)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--pink-d)}
+.btn.gray{background:#cbbdb2;box-shadow:0 5px 0 #a89990}
+.btn.green{background:var(--green);box-shadow:0 5px 0 var(--green-d)}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row .btn{flex:1 1 140px}
+input[type=text],textarea{font-family:var(--font);font-size:18px;border:3px solid var(--line);border-radius:14px;padding:10px 12px;width:100%;
+  background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+textarea{font-family:ui-monospace,Menlo,monospace;font-size:13px;height:42vh;white-space:pre;overflow:auto}
+label{display:block;margin-top:10px;font-size:16px;color:var(--soft)}
+/* 캐릭터 선택 */
+.chars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:600px){.chars{grid-template-columns:repeat(2,1fr)}}
+.char.locked{background:#f1ebe4}
+.unlock{font-size:20px;text-align:center;color:var(--pink-d);margin:8px 0}
+.char{font-family:var(--font);border:4px solid var(--line);border-radius:20px;background:#fff;color:var(--ink);padding:8px 6px;cursor:pointer;transition:transform .1s;display:flex;flex-direction:column;align-items:center}
+.char:hover{transform:translateY(-3px)}
+.char.on{border-color:var(--pink-d);background:#fff1f4}
+.char .nm{font-size:20px}
+.char .ds{font-size:13px;color:var(--soft);line-height:1.35;margin-top:3px}
+.char .ds b{color:var(--ink);font-weight:400}
+.char .best{font-size:13px;color:var(--pink-d);margin-top:4px}
+@media (max-width:420px){.char .ds{font-size:12px}}
+/* 문제 */
+#quizQ{text-align:center;margin:10px 0 16px;word-break:keep-all}
+#quizQ .ask{font-size:clamp(24px,5.4vw,36px);line-height:1.35}
+#quizQ.long .ask{font-size:clamp(20px,4.4vw,28px)}
+#quizQ .passage{font-size:clamp(17px,3.6vw,22px);line-height:1.6;text-align:left;white-space:pre-line;background:#fff;border:3px solid var(--line);
+  border-radius:16px;padding:10px 14px;margin-bottom:12px;color:var(--ink)}
+.choice.long{font-size:clamp(16px,3.4vw,21px);line-height:1.35;padding:10px 12px 10px 26px;word-break:keep-all}
+#quizShort .cells{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
+#quizShort .cell{width:clamp(40px,9vw,54px);height:clamp(46px,10vw,60px);border:3px dashed #d6c4b3;border-radius:12px;background:#fff;
+  font-size:clamp(24px,5.5vw,32px);display:flex;align-items:center;justify-content:center}
+#quizShort .cell.fill{border-style:solid;border-color:var(--pink)}
+#quizShort .cell.ghost{color:#c7b3a4}
+#quizShort .cell.ans{border-color:var(--green-d);background:#e6f6e9}
+#quizShort .gap{width:14px}
+#quizShort .cnt{font-size:15px;color:var(--soft);margin-left:6px}
+#quizShort .cells.over .cnt{color:var(--red)}
+#quizShort .srow{display:flex;gap:10px;align-items:stretch}
+#shortIn{font-size:clamp(22px,5vw,28px);text-align:center;flex:1 1 auto;min-width:0}
+#shortIn.ok{border-color:var(--green-d);background:#e6f6e9}
+#shortIn.no{border-color:var(--red);background:#fde8e6}
+#quizShort .btn{flex:0 0 auto}
+@media (max-width:520px){#quizShort .srow{flex-wrap:wrap}#shortIn{flex-basis:100%}#quizShort .btn{flex:1 1 0}}
+.note-ok{color:var(--green-d)}
+td.nq{white-space:pre-line;line-height:1.45}
+.units{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.unit{font-family:var(--font);font-size:15px;border:3px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);padding:6px 10px;min-height:40px;cursor:pointer}
+.unit span{color:var(--soft);font-size:13px}
+.unit.on{border-color:var(--green-d);background:#e6f6e9}
+.unit:focus-visible{outline:4px solid var(--ink);outline-offset:2px}
+.tagline{display:flex;justify-content:space-between;gap:4px 10px;flex-wrap:wrap;color:var(--soft);font-size:15px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{font-family:var(--font);font-size:clamp(22px,5vw,30px);min-height:72px;border:4px solid var(--line);border-radius:20px;background:#fff;
+  color:var(--ink);cursor:pointer;position:relative;transition:transform .08s}
+.choice:hover{transform:translateY(-2px);border-color:var(--pink)}
+.choice .k{position:absolute;left:10px;top:6px;font-size:14px;color:var(--soft)}
+.choice.ok{border-color:var(--green-d);background:#e6f6e9}
+.choice.ok::after{content:'○ 정답';position:absolute;right:10px;top:6px;font-size:14px;color:var(--green-d)}
+.choice.no{border-color:var(--red);background:#fde8e6}
+.choice.no::after{content:'✕ 내 답';position:absolute;right:10px;top:6px;font-size:14px;color:var(--red)}
+#quizFb{min-height:56px;margin-top:14px;text-align:center;font-size:20px}
+#quizFb .big{font-size:30px}
+/* 카드 */
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{font-family:var(--font);border:4px solid var(--line);border-radius:22px;background:#fff;padding:14px 12px;cursor:pointer;color:var(--ink);
+  text-align:center;transition:transform .1s;animation:pop .3s ease-out both}
+.card:hover{transform:translateY(-4px);border-color:var(--gold)}
+.card .ic{font-size:40px;line-height:1.1}
+.card .nm{font-size:22px;margin:6px 0 2px}
+.card .lv{font-size:15px;color:var(--pink-d)}
+.card .ds{font-size:15px;color:var(--soft);margin-top:6px;line-height:1.4}
+.card .k{font-size:13px;color:var(--soft);margin-top:6px}
+/* 표 */
+table{border-collapse:collapse;width:100%;font-size:15px;margin-top:8px}
+th,td{border-bottom:2px solid var(--line);padding:6px 4px;text-align:left}
+th{color:var(--soft);font-weight:400}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}
+.stat div{background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px;text-align:center}
+.stat b{display:block;font-size:26px;font-weight:400}
+.stat span{font-size:13px;color:var(--soft)}
+#errs{color:var(--red);font-size:15px;white-space:pre-wrap}
+#okmsg{color:var(--green-d);font-size:16px}
+/* HUD 버튼 */
+#pauseBtn{position:fixed;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:5;display:none;
+  width:52px;height:52px;border-radius:50%;border:0;background:rgba(255,250,243,.9);font-size:22px;color:var(--ink);box-shadow:0 4px 0 rgba(74,59,53,.15);cursor:pointer;font-family:var(--font)}
+#banner{position:fixed;left:0;right:0;top:22%;text-align:center;z-index:6;pointer-events:none;display:none}
+#banner span{display:inline-block;background:rgba(74,59,53,.85);color:#fff;font-size:clamp(24px,6vw,40px);padding:10px 28px;border-radius:20px;animation:pop .3s ease-out}
+#toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;pointer-events:none;display:none;
+  background:rgba(255,250,243,.95);border:3px solid var(--line);padding:8px 18px;border-radius:16px;font-size:18px;white-space:nowrap}
+.help{font-size:15px;color:var(--soft);line-height:1.6}
+.help b{color:var(--ink);font-weight:400}
+.check{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:18px}
+.check input{width:22px;height:22px}
+@media (max-height:500px){.panel{padding:14px 16px}.stat{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}.stat b{font-size:19px}#quizQ{margin:4px 0 10px}.choice{min-height:52px}}
+.ov.top{z-index:20}
+.dexgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+@media (max-width:600px){.dexgrid{grid-template-columns:repeat(4,1fr)}}
+.dexcell{background:#fff;border:3px solid var(--line);border-radius:16px;padding:6px 4px;text-align:center;font-size:14px}
+.dexcell img{width:100%;max-width:84px;aspect-ratio:1;object-fit:contain;display:block;margin:0 auto}
+.dexcell.no img{filter:brightness(0) opacity(.18)}
+.dexcell.no{color:var(--soft)}
+.dexcell .d{font-size:12px;color:var(--soft)}
+.meet{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.meetcard{background:#fff;border:4px solid var(--gold);border-radius:20px;padding:10px 14px;text-align:center;animation:meetpop .5s cubic-bezier(.34,1.56,.64,1) both;position:relative}
+.meetcard img{width:96px;height:96px;object-fit:contain;display:block;margin:0 auto}
+.meetcard .new{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--ink);border-radius:10px;padding:0 8px;font-size:14px}
+.meetcard .nm{font-size:18px;margin-top:4px}
+@keyframes meetpop{0%{transform:scale(.3) rotate(-8deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+.btn:focus-visible,.choice:focus-visible,.card:focus-visible,.char:focus-visible,#pauseBtn:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+.slider{display:block;margin-top:14px;font-size:18px;color:var(--ink)}
+.slider span{color:var(--soft);font-size:15px;margin-left:6px}
+.slider input{display:block;width:100%;height:32px;accent-color:var(--pink-d)}
+body.big .panel{zoom:1.15}
+body.big #toast,body.big #banner span{font-size:22px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<button id="pauseBtn" aria-label="잠깐 쉬기">❚❚</button>
+<div id="banner"><span></span></div>
+<div id="toast"></div>
+
+<!-- 입장 코드 -->
+<div class="ov" id="gate">
+  <div class="panel" style="max-width:440px;text-align:center">
+    <p class="sub">수업용 · 우리 반만</p>
+    <h1>치이카와의 모험</h1>
+    <label for="gateIn" style="text-align:left">입장 코드</label>
+    <input type="text" id="gateIn" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="선생님이 알려 준 코드">
+    <p class="sub" id="gateMsg" style="color:var(--red);min-height:22px"></p>
+    <div class="row"><button class="btn" id="gateGo">입장하기</button></div>
+    <p class="sub" style="font-size:13px;margin-top:12px">이 게임은 교실 수업에서만 쓰는 학습용 시제품이에요.<br>그림과 캐릭터의 저작권은 원작자에게 있어요. 밖으로 퍼뜨리지 말아 주세요.</p>
+  </div>
+</div>
+
+<!-- 처음 화면 -->
+<div class="ov" id="title">
+  <div class="panel" style="text-align:center;max-width:760px">
+    <p class="sub">시제품 · 수업용</p>
+    <h1>치이카와의 모험</h1>
+    <p>오늘의 토벌 의뢰: <b>들판에서 5분 버티기!</b></p>
+    <p class="sub">문제를 맞히면 무기를 고를 수 있어요. 틀리면 체력 −10, 틀린 문제는 오답 노트에 모여요.</p>
+    <label for="nick" style="text-align:left">별명</label>
+    <input type="text" id="nick" maxlength="12" placeholder="예: 토벌왕">
+    <p class="sub" style="text-align:left;margin:12px 0 6px">누구와 모험할까요?</p>
+    <div class="chars" id="charList"></div>
+    <p class="sub" id="unitLabel" style="text-align:left;margin:12px 0 6px">어느 단원을 복습할까요?</p>
+    <div class="units" id="unitList"></div>
+    <div class="row"><button class="btn" id="startBtn" data-focus>모험 시작</button></div>
+    <div class="row">
+      <button class="btn gray" id="howBtn">게임 방법</button>
+      <button class="btn gray" id="setBtn">설정</button>
+      <button class="btn gray" id="editBtn">문항 넣기</button>
+      <button class="btn gray" id="recBtn">기록 보기</button>
+      <button class="btn gray" id="dexBtn">동료 도감</button>
+      <button class="btn gray" id="noteBtn">오답 노트</button>
+    </div>
+    <p class="sub" id="qcount" style="margin-top:12px"></p>
+  </div>
+</div>
+
+<!-- 게임 방법 -->
+<div class="ov dim top" id="how">
+  <div class="panel help">
+    <h2>게임 방법</h2>
+    <p><b>이동</b> · PC는 방향키나 WASD, 태블릿은 화면 왼쪽을 누른 채 끌어요. 공격은 저절로 해요.</p>
+    <p><b>토벌 증표</b> · 몬스터가 떨어뜨린 파란 증표를 모아 게이지가 차면 문제가 나와요.</p>
+    <p><b>정답</b> · 무기 카드를 골라 강해져요. 3번 연속 정답이면 카드가 4장!</p>
+    <p><b>오답</b> · 체력 −10. 정답을 보여 주고, 2~3문제 뒤에 <b>같은 문제</b>가 다시 나와요.</p>
+    <p><b>주관식</b> · 답을 써서 '확인'을 눌러요. 칸 수가 글자 수예요. 막히면 '첫 글자'를 눌러요. 띄어쓰기는 틀려도 괜찮아요.</p>
+    <p><b>오답 노트</b> · 틀린 문제는 별명별로 모여요. 다음 판 초반에 먼저 나오고, 처음 화면의 오답 노트에서 체력 걱정 없이 복습할 수 있어요. 두 번 맞히면 졸업!</p>
+    <p><b>약초</b> · 초록 약초 옆에 가만히 서 있으면 캐져요. 체력 +15.</p>
+    <p><b>캐릭터</b> · 치이카와는 낫(체력이 낮으면 덜 아파요), 하치와레는 새총(3번 연속 정답이면 3초 무적), 우사기는 몽둥이(움직이면 돌진, 멈추면 쿵!)로 싸워요. 랏코는 첫 토벌에 성공하면 함께하고, 검으로 크게 베어요. 문제와 보상은 모두 같아요.</p>
+    <p><b>보스</b> · 2분 30초에 1라운드 보스 세이렌이 나와요. 체력이 반쯤 줄면 약점 문제! 맞히면 보스가 기절해요. 빨간 줄이 보이면 비켜요.</p>
+    <p><b>게임패드</b> · 왼쪽 스틱으로 이동, A로 고르기, B로 닫기, Start로 쉬기. 키보드는 화살표로 버튼 사이를 옮기고 Enter로 골라요.</p>
+    <p><b>문제를 푸는 동안·보스전 동안</b>에는 시계가 멈춰요. 천천히 풀어도 괜찮아요.</p>
+    <div class="row"><button class="btn" data-close="how">알겠어요</button></div>
+  </div>
+</div>
+
+<!-- 문항 넣기 -->
+<div class="ov dim top" id="editor">
+  <div class="panel" style="max-width:900px">
+    <h2>문항 넣기 (선생님)</h2>
+    <p class="help">엑셀·구글 시트에서 표를 통째로 복사해 붙여 넣으면 돼요. 한 줄이 한 문제예요.<br>
+      칸 순서: <b>유형(단원) · 난이도(1~3) · 문제 · 정답 · 오답1 · 오답2 · 오답3 · 해설</b><br>
+      칸은 탭이나 <b>|</b> 로 나눠요. 첫 줄이 '유형'으로 시작하면 머리글로 보고 건너뛰어요. 해설은 비워도 돼요.<br>
+      <b>오답 칸을 모두 비우면 주관식</b>이에요. 정답을 <b>가/나</b>처럼 쓰면 둘 다 정답으로 쳐요. 셀 안 줄바꿈은 그대로 붙여 넣어도 되고, | 로 쓸 때는 <b>\n</b>으로 써요.<br>
+      같은 <b>유형</b> 이름끼리 처음 화면의 '단원 고르기'에 묶여요.</p>
+    <textarea id="qtext" spellcheck="false"></textarea>
+    <div id="errs"></div><div id="okmsg"></div>
+    <div class="row">
+      <button class="btn green" id="qApply">확인하고 저장</button>
+      <button class="btn gray" id="qReset">예시 문항으로 되돌리기</button>
+      <button class="btn gray" data-close="editor">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 기록 -->
+<div class="ov dim top" id="records">
+  <div class="panel" style="max-width:900px">
+    <h2>기록 (이 기기)</h2>
+    <div id="recTable"></div>
+    <div class="row">
+      <button class="btn green" id="recCopy">표 복사 (엑셀에 붙여넣기)</button>
+      <button class="btn gray" id="recClear">기록 지우기</button>
+      <button class="btn gray" data-close="records">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 문제 -->
+<div class="ov dim" id="quiz">
+  <div class="panel">
+    <div class="tagline"><span id="quizKind"></span><span id="quizTag"></span></div>
+    <div id="quizQ"></div>
+    <div class="choices" id="quizChoices"></div>
+    <div id="quizShort" style="display:none">
+      <div class="cells" id="shortCells" aria-hidden="true"></div>
+      <div class="srow">
+        <input type="text" id="shortIn" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="답 쓰기" placeholder="답을 써요">
+        <button class="btn gray" id="shortHint">첫 글자</button>
+        <button class="btn green" id="shortGo">확인</button>
+      </div>
+    </div>
+    <div id="quizFb"></div>
+    <div class="row" id="quizNextRow" style="display:none"><button class="btn" id="quizNext">계속하기</button></div>
+    <div class="row" id="quizQuitRow" style="display:none;justify-content:center"><button class="btn gray" id="quizQuit" style="flex:0 0 auto">복습 그만하기</button></div>
+  </div>
+</div>
+
+<!-- 카드 -->
+<div class="ov dim" id="cards">
+  <div class="panel" style="max-width:760px">
+    <h2 style="text-align:center">정답! 하나를 골라요</h2>
+    <div class="cards" id="cardList"></div>
+  </div>
+</div>
+
+<!-- 쉬기 -->
+<div class="ov dim" id="pause">
+  <div class="panel" style="max-width:420px;text-align:center">
+    <h2>잠깐 쉬는 중</h2>
+    <div class="row"><button class="btn" id="resumeBtn" data-focus>계속하기</button></div>
+    <div class="row"><button class="btn gray" id="setBtn2">설정</button><button class="btn gray" id="howBtn2">게임 방법</button><button class="btn gray" id="quitBtn">그만하기</button></div>
+  </div>
+</div>
+
+<!-- 동료 도감 -->
+<div class="ov dim top" id="dex">
+  <div class="panel" style="max-width:820px">
+    <h2>동료 도감 <span class="sub" id="dexCount"></span></h2>
+    <p class="sub">문제를 5개 이상 맞히고 판을 마치면 동료를 1명 만나요. 토벌에 성공하면 2명!</p>
+    <div class="dexgrid" id="dexGrid"></div>
+    <div class="row"><button class="btn" data-close="dex" data-focus>닫기</button></div>
+  </div>
+</div>
+
+<!-- 오답 노트 -->
+<div class="ov dim top" id="note">
+  <div class="panel" style="max-width:860px">
+    <h2>오답 노트 <span class="sub" id="noteWho"></span></h2>
+    <p class="sub">틀린 문제가 별명별로 이 기기에 모여요. 틀린 뒤에 두 번 맞히면 졸업해요. 남은 문제는 다음 판 초반에도 먼저 나와요.</p>
+    <div id="noteList"></div>
+    <div class="row">
+      <button class="btn green" id="noteGo" data-focus>복습하기 (체력·시간 없음)</button>
+      <button class="btn gray" id="noteClear">노트 비우기</button>
+      <button class="btn gray" data-close="note">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 복습 끝 -->
+<div class="ov dim" id="revEnd">
+  <div class="panel" style="max-width:520px;text-align:center">
+    <h2>복습 끝!</h2>
+    <div class="stat" id="revSum"></div>
+    <p id="revMsg"></p>
+    <div class="row"><button class="btn" id="revAgain" data-focus>한 번 더 복습</button><button class="btn gray" id="revBack">돌아가기</button></div>
+  </div>
+</div>
+
+<!-- 설정 -->
+<div class="ov dim top" id="settings">
+  <div class="panel" style="max-width:460px">
+    <h2>설정</h2>
+    <label class="check"><input type="checkbox" id="optSound"> 소리 켜기</label>
+    <label class="slider">소리 크기 <span id="optVolV"></span><input type="range" id="optVol" min="0" max="100" step="10"></label>
+    <label class="slider">화면 흔들림 <span id="optShakeV"></span><input type="range" id="optShakeAmt" min="0" max="100" step="10"></label>
+    <label class="check"><input type="checkbox" id="optFlash"> 번쩍임 줄이기</label>
+    <label class="check"><input type="checkbox" id="optBig"> 글자 크게</label>
+    <div class="row"><button class="btn" data-close="settings" data-focus>닫기</button></div>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div class="ov dim" id="result">
+  <div class="panel" style="max-width:760px">
+    <h2 id="resTitle"></h2>
+    <div class="stat" id="resStat"></div>
+    <div id="resTags"></div>
+    <div id="resWrong"></div>
+    <div class="row"><button class="btn" id="againBtn" data-focus>다시 하기</button><button class="btn green" id="resNoteBtn" style="display:none">오답 노트 복습</button><button class="btn gray" id="homeBtn">처음으로</button></div>
+  </div>
+</div>
+
+<!-- 오류 -->
+<div class="ov dim" id="err">
+  <div class="panel" style="max-width:480px;text-align:center">
+    <h2>앗, 문제가 생겼어요</h2>
+    <p class="sub" id="errMsg"></p>
+    <div class="row"><button class="btn" id="errRetry">다시 하기</button><button class="btn gray" id="errHome">처음으로</button></div>
+  </div>
+</div>
+
+<script src="audio/manifest.js"></script>
+<script src="art/manifest.js"></script>
+<script src="companions.js"></script>
+<script src="questions.js"></script>
+<script src="quiz.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
