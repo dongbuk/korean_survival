@@ -7,8 +7,24 @@ window.ART_FILES = {
   hachiware: 'heroes/h14.png',
   rakko: 'heroes/h22.png',  // 해달 (2줄 2번)
   // 몬스터
-  slime: 'enemies/e32.png',  // 기본 몬스터 1 (맨 아랫줄 2번)
-  hopper: 'enemies/e34.png', // 기본 몬스터 2 (맨 아랫줄 4번)
-  big: 'enemies/e11.png',    // 아노코 (흰색 털뭉치)
-  boss: 'enemies/e12.png',   // 1라운드 보스 세이렌
+  slime: 'enemies/e32.png',   // 기본 몬스터 1 (맨 아랫줄 2번)
+  hopper: 'enemies/e34.png',  // 기본 몬스터 2 (맨 아랫줄 4번) · 콩콩 뛰어옴
+  big: 'enemies/e11.png',     // 아노코 (흰색 털뭉치)
+  burrow: 'enemies/e13.png',  // 1줄 3번 · 땅속에 숨었다가 튀어나옴
+  thrower: 'enemies/e14.png', // 1줄 4번 · 초록 도깨비, 몽둥이를 던짐 (5:00 보스 뒤 동료)
+  spitter: 'enemies/e21.png', // 2줄 1번 · 노랑 외눈이, 3갈래 탄 (5:00 보스 뒤 동료)
+  charger: 'enemies/e23.png', // 2줄 3번 · 사자탈, 경고선 뒤 돌진
+  swoop: 'enemies/e24.png',   // 2줄 4번 · 흰 새, 빙빙 돌다 급강하
+  boss: 'enemies/e12.png',    // 1·2라운드 보스 세이렌
+  star: 'enemies/e22.png',    // 마지막 보스 검은 별똥별 (2줄 2번)
+  // 캐릭터 전용 토벌봉 (던지는 무기)
+  rod_chiikawa: 'rods/chiikawa.png',   // 분홍
+  rod_hachiware: 'rods/hachiware.png', // 파랑
+  rod_usagi: 'rods/usagi.png',         // 노랑
+};
+// 보스를 쓰러뜨릴 때마다 바뀌는 외형 (주인공 시트 줄·칸, 이 중에서 무작위)
+window.ART_SKINS = {
+  chiikawa: ['h15', 'h31', 'h35', 'h41', 'h44'],
+  hachiware: ['h25', 'h33', 'h36', 'h46'],
+  usagi: ['h26', 'h34'],
 };

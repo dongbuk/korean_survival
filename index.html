@@ -108,6 +108,8 @@ td.nq{white-space:pre-line;line-height:1.45}
 .card .lv{font-size:15px;color:var(--pink-d)}
 .card .ds{font-size:15px;color:var(--soft);margin-top:6px;line-height:1.4}
 .card .k{font-size:13px;color:var(--soft);margin-top:6px}
+.card .evo{color:#b07a1a;font-size:14px}
+.card.evo{border-color:var(--gold);background:linear-gradient(160deg,#fffbe8,#fff 60%);box-shadow:0 0 0 3px rgba(242,193,78,.35)}
 /* 표 */
 table{border-collapse:collapse;width:100%;font-size:15px;margin-top:8px}
 th,td{border-bottom:2px solid var(--line);padding:6px 4px;text-align:left}
@@ -131,6 +133,52 @@ th{color:var(--soft);font-weight:400}
 .check input{width:22px;height:22px}
 @media (max-height:500px){.panel{padding:14px 16px}.stat{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}.stat b{font-size:19px}#quizQ{margin:4px 0 10px}.choice{min-height:52px}}
 .ov.top{z-index:20}
+.ov.top2{z-index:30}
+/* 문항 관리 */
+.edhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;border-bottom:3px solid var(--line);margin:4px 0 12px;flex-wrap:wrap}
+.tab{font-family:var(--font);font-size:17px;border:3px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:#f4ece2;color:var(--soft);padding:8px 14px;cursor:pointer;margin-bottom:-3px}
+.tab.on{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.tab:focus-visible,.seg button:focus-visible,.edrow button:focus-visible{outline:4px solid var(--ink);outline-offset:2px}
+.edtools{display:flex;gap:10px;align-items:stretch}
+.edtools input{flex:1 1 auto}
+.edtools .btn{flex:0 0 auto}
+.edrows{margin-top:10px;max-height:50vh;overflow:auto;border:3px solid var(--line);border-radius:16px;background:#fff;touch-action:pan-y}
+.edrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:2px solid #f1e8dc}
+.edrow:last-child{border-bottom:0}
+.edrow .no{color:var(--soft);font-size:14px;min-width:28px;text-align:right}
+.edrow .qq{min-width:0}
+.edrow .qq .ask{font-size:17px;line-height:1.35}
+.edrow .qq .psg{font-size:13px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edrow .qq .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{font-size:12px;border-radius:10px;padding:1px 8px;background:#f4ece2;color:var(--soft)}
+.chip.mc{background:#e7f1fd;color:#3d6fa8}.chip.sh{background:#fde9ef;color:#b0506c}.chip.ans{background:#e6f6e9;color:var(--green-d)}
+.edrow .acts{display:flex;gap:6px}
+.edrow .acts button{font-family:var(--font);font-size:15px;border:3px solid var(--line);background:#fff;border-radius:12px;padding:6px 10px;cursor:pointer;color:var(--ink);min-height:40px}
+.edrow .acts button.del:hover{border-color:var(--red);color:var(--red)}
+.edrow.bad{background:#fff4f2}
+#qApply.dirty{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.qfgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+@media (max-width:760px){.qfgrid{grid-template-columns:1fr}.edrow{grid-template-columns:1fr auto}.edrow .no{display:none}}
+.qfin textarea{height:auto;font-family:var(--font);font-size:17px;white-space:pre-wrap}
+.seg2{display:flex;gap:16px;flex-wrap:wrap}
+.seg{display:inline-flex;border:3px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.seg button{font-family:var(--font);font-size:16px;border:0;background:#fff;padding:8px 14px;cursor:pointer;color:var(--soft);min-height:42px}
+.seg button.on{background:var(--pink);color:var(--ink)}
+.wr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:520px){.wr{grid-template-columns:1fr}}
+#qfErr{color:var(--red);font-size:15px;min-height:20px;margin-top:6px}
+.qfprev .pv{background:var(--bg);border:3px solid var(--line);border-radius:20px;padding:12px;position:sticky;top:0}
+.pv #pvQ .passage{font-size:15px;line-height:1.5;white-space:pre-line;background:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 10px;margin:8px 0}
+.pv #pvQ .ask{font-size:20px;text-align:center;margin:8px 0}
+.pv .pch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pv .pch div{background:#fff;border:3px solid var(--line);border-radius:14px;padding:8px;text-align:center;font-size:15px;min-height:44px}
+.pv .pch div.ok{border-color:var(--green-d);background:#e6f6e9}
+.pv .pcells{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.pv .pcells span{width:34px;height:38px;border:3px dashed #d6c4b3;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.pv .pcells span.gap{border:0;width:10px;background:none}
+.card .ic img{height:52px;width:auto;transform:rotate(-20deg)}
 .dexgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
 @media (max-width:600px){.dexgrid{grid-template-columns:repeat(4,1fr)}}
 .dexcell{background:#fff;border:3px solid var(--line);border-radius:16px;padding:6px 4px;text-align:center;font-size:14px}
@@ -177,7 +225,7 @@ body.big #toast,body.big #banner span{font-size:22px}
   <div class="panel" style="text-align:center;max-width:760px">
     <p class="sub">시제품 · 수업용</p>
     <h1>치이카와의 모험</h1>
-    <p>오늘의 토벌 의뢰: <b>들판에서 5분 버티기!</b></p>
+    <p>오늘의 토벌 의뢰: <b>10분 버티고 검은 별똥별 물리치기!</b></p>
     <p class="sub">문제를 맞히면 무기를 고를 수 있어요. 틀리면 체력 −10, 틀린 문제는 오답 노트에 모여요.</p>
     <label for="nick" style="text-align:left">별명</label>
     <input type="text" id="nick" maxlength="12" placeholder="예: 토벌왕">
@@ -208,9 +256,13 @@ body.big #toast,body.big #banner span{font-size:22px}
     <p><b>오답</b> · 체력 −10. 정답을 보여 주고, 2~3문제 뒤에 <b>같은 문제</b>가 다시 나와요.</p>
     <p><b>주관식</b> · 답을 써서 '확인'을 눌러요. 칸 수가 글자 수예요. 막히면 '첫 글자'를 눌러요. 띄어쓰기는 틀려도 괜찮아요.</p>
     <p><b>오답 노트</b> · 틀린 문제는 별명별로 모여요. 다음 판 초반에 먼저 나오고, 처음 화면의 오답 노트에서 체력 걱정 없이 복습할 수 있어요. 두 번 맞히면 졸업!</p>
-    <p><b>약초</b> · 초록 약초 옆에 가만히 서 있으면 캐져요. 체력 +15.</p>
+    <p><b>약초</b> · 초록 약초 옆에 가만히 서 있으면 캐져요. 체력 +20.</p>
     <p><b>캐릭터</b> · 치이카와는 낫(체력이 낮으면 덜 아파요), 하치와레는 새총(3번 연속 정답이면 3초 무적), 우사기는 몽둥이(움직이면 돌진, 멈추면 쿵!)로 싸워요. 랏코는 첫 토벌에 성공하면 함께하고, 검으로 크게 베어요. 문제와 보상은 모두 같아요.</p>
-    <p><b>보스</b> · 2분 30초에 1라운드 보스 세이렌이 나와요. 체력이 반쯤 줄면 약점 문제! 맞히면 보스가 기절해요. 빨간 줄이 보이면 비켜요.</p>
+    <p><b>보스</b> · 2분 30초마다 보스가 나와요: 2:30 세이렌 → 5:00 세이렌(두 번째) → 10:00 마지막 보스 <b>검은 별똥별</b>. 체력이 반쯤 줄면 약점 문제! 맞히면 보스가 기절해요. 빨간 줄·보라 원이 보이면 비켜요. 별똥별은 분신도 만들어요.</p>
+    <p><b>몬스터</b> · 시간이 지나면 새 몬스터가 나와요. 흰 새는 빙빙 돌다 급강하, 흙더미는 땅속에서 튀어나오고, 도깨비는 몽둥이를, 외눈이는 보라 탄을 던지고, 사자탈은 빨간 줄 뒤 돌진해요. 7:30엔 대습격!</p>
+    <p><b>동료</b> · 두 번째 보스를 쓰러뜨리면 노랑 외눈이와 초록 도깨비가 동료가 돼요. E 키(태블릿은 오른쪽 아래 버튼)로 불러서 7초 동안 같이 싸워요. 22초마다 다시 부를 수 있어요.</p>
+    <p><b>토벌봉</b> · 치이카와·하치와레·우사기는 자기 토벌봉을 들고 시작해요. 치이카와의 분홍 봉은 적 사이를 튕기고, 하치와레의 파랑 봉은 부채꼴로 꿰뚫고, 우사기의 노랑 봉은 높이 날아가 쿵! 내리꽂혀요.</p>
+    <p><b>무기 진화</b> · 무기를 Lv.5까지 키우면 진화해서 새 기술이 생겨요. 보스를 쓰러뜨릴 때마다 캐릭터 모습도 바뀌어요!</p>
     <p><b>게임패드</b> · 왼쪽 스틱으로 이동, A로 고르기, B로 닫기, Start로 쉬기. 키보드는 화살표로 버튼 사이를 옮기고 Enter로 골라요.</p>
     <p><b>문제를 푸는 동안·보스전 동안</b>에는 시계가 멈춰요. 천천히 풀어도 괜찮아요.</p>
     <div class="row"><button class="btn" data-close="how">알겠어요</button></div>
@@ -219,20 +271,89 @@ body.big #toast,body.big #banner span{font-size:22px}
 
 <!-- 문항 넣기 -->
 <div class="ov dim top" id="editor">
-  <div class="panel" style="max-width:900px">
-    <h2>문항 넣기 (선생님)</h2>
-    <p class="help">엑셀·구글 시트에서 표를 통째로 복사해 붙여 넣으면 돼요. 한 줄이 한 문제예요.<br>
-      칸 순서: <b>유형(단원) · 난이도(1~3) · 문제 · 정답 · 오답1 · 오답2 · 오답3 · 해설</b><br>
-      칸은 탭이나 <b>|</b> 로 나눠요. 첫 줄이 '유형'으로 시작하면 머리글로 보고 건너뛰어요. 해설은 비워도 돼요.<br>
-      <b>오답 칸을 모두 비우면 주관식</b>이에요. 정답을 <b>가/나</b>처럼 쓰면 둘 다 정답으로 쳐요. 셀 안 줄바꿈은 그대로 붙여 넣어도 되고, | 로 쓸 때는 <b>\n</b>으로 써요.<br>
-      같은 <b>유형</b> 이름끼리 처음 화면의 '단원 고르기'에 묶여요.</p>
-    <textarea id="qtext" spellcheck="false"></textarea>
+  <div class="panel ed" style="max-width:980px">
+    <div class="edhead"><h2>문항 관리 <span class="sub">선생님</span></h2><span class="sub" id="edCount"></span></div>
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-tab="edList" role="tab">📋 문항 목록</button>
+      <button class="tab" data-tab="edPaste" role="tab">📥 엑셀로 한꺼번에</button>
+      <button class="tab" data-tab="edCode" role="tab">🔑 선생님 코드</button>
+    </div>
+    <section id="edList">
+      <div class="edtools">
+        <input type="text" id="edSearch" placeholder="🔍 문제·정답으로 찾기" aria-label="문항 찾기">
+        <button class="btn green" id="edAdd" data-focus>＋ 새 문제</button>
+      </div>
+      <div class="units" id="edUnits" style="justify-content:flex-start;margin-top:8px"></div>
+      <div class="edrows" id="edRows"></div>
+    </section>
+    <section id="edPaste" hidden>
+      <p class="help">엑셀·구글 시트에서 표를 통째로 복사해 붙여 넣어요. 한 줄이 한 문제예요.<br>
+        칸 순서: <b>단원 · 난이도(1~3) · 문제 · 정답 · 오답1 · 오답2 · 오답3 · 해설</b> · <b>오답 칸을 모두 비우면 주관식</b>. 정답을 <b>가/나</b>처럼 쓰면 둘 다 정답.<br>
+        셀 안 줄바꿈은 그대로 붙여 넣어도 되고, | 로 쓸 때는 <b>\n</b>으로 써요. 첫 줄이 '유형'으로 시작하면 머리글로 보고 건너뛰어요.</p>
+      <textarea id="qtext" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn" id="pasteReplace">이 내용으로 목록 바꾸기</button>
+        <button class="btn gray" id="pasteAdd">목록 뒤에 더하기</button>
+      </div>
+    </section>
+    <section id="edCode" hidden>
+      <p class="help">문항 관리를 열 때 묻는 코드예요. 이 기기에만 저장돼요. 학생에게 알려 주지 마세요.</p>
+      <label for="tc1">새 선생님 코드</label><input type="password" id="tc1" autocomplete="new-password">
+      <label for="tc2">한 번 더</label><input type="password" id="tc2" autocomplete="new-password">
+      <div class="row"><button class="btn" id="tcSave">코드 바꾸기</button></div>
+    </section>
     <div id="errs"></div><div id="okmsg"></div>
     <div class="row">
-      <button class="btn green" id="qApply">확인하고 저장</button>
-      <button class="btn gray" id="qReset">예시 문항으로 되돌리기</button>
-      <button class="btn gray" data-close="editor">닫기</button>
+      <button class="btn green" id="qApply">💾 저장하기</button>
+      <button class="btn gray" id="qReset">기본 문항으로 되돌리기</button>
+      <button class="btn gray" id="edClose">닫기</button>
     </div>
+  </div>
+</div>
+
+<!-- 문제 한 개 만들기·고치기 -->
+<div class="ov dim top2" id="qform">
+  <div class="panel qf" style="max-width:980px">
+    <h2 id="qfTitle">새 문제</h2>
+    <div class="qfgrid">
+      <div class="qfin">
+        <label for="qfTag">단원</label><input type="text" id="qfTag" list="qfTags" placeholder="예: 3. 표준어와 방언을 알아봐요">
+        <datalist id="qfTags"></datalist>
+        <div class="seg2">
+          <div><label>문제 종류</label><div class="seg" id="qfKind"><button data-v="mc" class="on">객관식</button><button data-v="short">주관식</button></div></div>
+          <div><label>난이도</label><div class="seg" id="qfDiff"><button data-v="1" class="on">★</button><button data-v="2">★★</button><button data-v="3">★★★</button></div></div>
+        </div>
+        <label for="qfQ">문제 <span class="sub">· 앞줄은 지문 상자, 마지막 줄은 묻는 말로 보여요</span></label>
+        <textarea id="qfQ" rows="4"></textarea>
+        <label for="qfAns">정답 <span class="sub" id="qfAnsHint"></span></label><input type="text" id="qfAns">
+        <div id="qfWrongs">
+          <label>오답 <span class="sub">· 1~3개</span></label>
+          <div class="wr"><input type="text" id="qfW1" placeholder="오답 1"><input type="text" id="qfW2" placeholder="오답 2"><input type="text" id="qfW3" placeholder="오답 3"></div>
+        </div>
+        <label for="qfExp">해설 <span class="sub">· 틀렸을 때 정답 밑에 보여요 (비워도 돼요)</span></label><input type="text" id="qfExp">
+        <div id="qfErr"></div>
+      </div>
+      <div class="qfprev">
+        <p class="sub" style="margin:0 0 6px">학생 화면 미리보기</p>
+        <div class="pv"><div class="tagline"><span>증표 게이지 가득! 문제</span><span id="pvTag"></span></div><div id="pvQ"></div><div id="pvA"></div></div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn green" id="qfSave">확인</button>
+      <button class="btn gray" id="qfDel">이 문제 지우기</button>
+      <button class="btn gray" id="qfCancel">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 선생님 코드 -->
+<div class="ov dim top2" id="tgate">
+  <div class="panel" style="max-width:400px;text-align:center">
+    <h2>🔒 선생님만 열 수 있어요</h2>
+    <label for="tgIn" style="text-align:left">선생님 코드</label>
+    <input type="password" id="tgIn" autocomplete="off" enterkeyhint="go">
+    <p class="sub" id="tgMsg" style="color:var(--red);min-height:22px"></p>
+    <div class="row"><button class="btn" id="tgGo">열기</button><button class="btn gray" data-close="tgate">닫기</button></div>
   </div>
 </div>
 
