@@ -36,7 +36,8 @@
   const T = {
     RUN: 600,        // 초: 전투 시계 기준 판 길이 (10분 · 보스전 중엔 시계가 멈춰요)
     RUSH_AT: 450,    // 초: 몬스터 대습격
-    ALLY_CD: 22, ALLY_DUR: 7, // 동료 소환 쿨타임 · 지속 (초)
+    ALLY_CD: 22, ALLY_DUR: 7, SUMO_CD: 16, SUMO_DUR: 5, // 섬아저씨 (Q)
+    // 동료 소환 쿨타임 · 지속 (초)
     HP: 100,
     WRONG: 10,       // 오답 피해
     SPEED: 140,      // px/초
@@ -58,7 +59,8 @@
     fluff: { r: 12, hp: 30, spd: 150, dmg: 6, xp: 1 },   // 아노코가 부르는 꼬마 아노코 (빠름)
     stag: { r: 18, hp: 40, spd: 52, dmg: 9, xp: 3 },     // 집게투구: 멈춰서 땅을 찍으면 가시가 줄지어 솟아요
     mace: { r: 20, hp: 55, spd: 46, dmg: 10, xp: 3 },    // 쇠공 토끼: 가까우면 쇠공을 빙빙 돌리고, 멀면 쇠공을 굴려요
-    grab: { r: 16, hp: 34, spd: 56, dmg: 7, xp: 3 },     // 긴팔 털뭉치: 팔을 뻗어 붙잡으면 끌려가요
+    grab: { r: 16, hp: 34, spd: 56, dmg: 7, xp: 3 },
+    mermaid: { r: 17, hp: 160, spd: 72, dmg: 8, xp: 5 }, // 세이렌의 인어 2마리 (하드: 물줄기·물방울)     // 긴팔 털뭉치: 팔을 뻗어 붙잡으면 끌려가요
   };
   // 언제부터 나오는지(초)와 나오는 비율. after: 보스를 몇 마리 쓰러뜨린 뒤부터. 동료가 된 몬스터(ally)는 5:00 보스 뒤엔 안 나와요.
   const SPAWN = [
@@ -113,6 +115,7 @@
     rod_chiikawa: { only: 'chiikawa', img: 'rods/chiikawa.png', name: '분홍 토벌봉', ic: 'heart', desc: (l) => `던지면 적과 적 사이를 튕겨 다녀요 · 피해 ${20 + 5 * (l - 1)} · ${2 + Math.floor(l / 2)}번 튕김` },
     rod_hachiware: { only: 'hachiware', img: 'rods/hachiware.png', name: '파랑 토벌봉', ic: 'heart', desc: (l) => `부채꼴로 ${l >= 5 ? 5 : l >= 3 ? 4 : 3}개를 던져 꿰뚫어요 · 피해 ${14 + 4 * (l - 1)}` },
     rod_usagi: { only: 'usagi', img: 'rods/usagi.png', name: '노랑 토벌봉', ic: 'heart', desc: (l) => `높이 던져 적 무리 위에 쿵! 내리꽂아요 · 피해 ${35 + 10 * (l - 1)}` },
+    rod_rakko: { only: 'rakko', img: 'items/rakko_sword.png', name: '해달의 칼', ic: 'sword', desc: (l) => `칼을 빙글빙글 던져 모두 베고 돌아와요 · 피해 ${40 + 12 * (l - 1)}${l >= 3 ? ' · 2자루' : ''}` },
     mine: { name: '꽃폭탄', ic: 'mine', desc: (l) => `발밑에 꽃을 심어요. 적이 밟으면 펑! · 피해 ${28 + 8 * (l - 1)}` },
     // 캐릭터 전용 물건 (카드로 얻어요)
     it_naruto: { only: 'chiikawa', img: 'items/naruto.png', name: '나루토 원반', ic: 'heart', desc: (l) => `몸 주위를 ${l >= 5 ? 4 : l >= 3 ? 3 : 2}개가 빙글빙글 돌며 베어요 · 피해 ${10 + 3 * (l - 1)}` },
@@ -126,6 +129,7 @@
     sword: '검기가 날아가요', club: '충격파가 퍼져요', zap: '맞은 적이 감전돼 느려져요',
     boom: '불꽃 숟가락! 더 크고 불꽃이 남아요', mine: '터질 때 꽃잎 폭탄이 4개 더 터져요',
     rod_chiikawa: '6번 튕기고, 맞을 때마다 작게 터져요', rod_hachiware: '5개를 던지고 끝까지 꿰뚫어요', rod_usagi: '2개를 던지고 떨어진 곳에 충격파가 퍼져요',
+    rod_rakko: '3자루를 던지고, 돌아올 때 검기 고리가 퍼져요',
     it_naruto: '원반이 크게 펼쳐졌다 돌아와요', it_tempura: '튕길 때마다 작게 터져요', it_rocket: '터질 때 작은 로켓 3개가 더 날아가요', top: '다 돌면 크게 펑!',
   };
   const SUBS = {
@@ -139,7 +143,7 @@
     chiikawa: { name: '치이카와', weapon: 'sickle', speed: 1, herbMul: 1, passive: '버티기', pdesc: '체력 30% 이하일 때 몬스터 피해 −30%' },
     hachiware: { name: '하치와레', weapon: 'sling', speed: 1, herbMul: 1, passive: '응원', pdesc: '3번 연속 정답마다 3초 무적 + 주변 밀어내기' },
     usagi: { name: '우사기', weapon: 'club', speed: 1.2, herbMul: 0.5, passive: '우라!', pdesc: '빠르게 달리고 약초를 2배 빨리 캐요' },
-    rakko: { name: '랏코', weapon: 'sword', speed: 1.05, herbMul: 1, passive: '토벌 고수', pdesc: '보스에게 주는 피해 +30%', locked: true },
+    rakko: { name: '랏코', weapon: 'sword', speed: 1.1, herbMul: 1, hp: 140, passive: '토벌 고수', pdesc: '체력 140 · 모든 피해 +20% · 보스에게 +30% 더 · 해달의 칼', locked: true },
   };
   const isUnlocked = (k) => !CHARS[k].locked || !!store.get('chii_unlock_' + k, false);
   let selChar = store.get('chii_char', 'chiikawa');
@@ -310,7 +314,8 @@
     }
     if ((e.code === 'Enter' || e.code === 'Space') && state === 'quiz' && $('quizNextRow').style.display !== 'none') { e.preventDefault(); afterQuiz(false); }
     if (BIND.up.concat(BIND.down, BIND.left, BIND.right).includes(e.code) || e.code === 'Space') e.preventDefault();
-    if ((e.code === 'KeyE' || e.code === 'KeyQ') && !e.repeat && state === 'play') useAlly();
+    if (e.code === 'KeyE' && !e.repeat && state === 'play') useAlly();
+    if (e.code === 'KeyQ' && !e.repeat && state === 'play') useSumo();
     if (QA && G && state === 'play') {
       if (e.code === 'KeyB') { G.clock = (BOSSES[G.bossIdx] || { at: T.RUN }).at; }
       if (e.code === 'KeyK') G.enemies.forEach((en) => { if (en.type !== 'boss') hurtEnemy(en, 9999, G.player.x, G.player.y, 0); });
@@ -327,6 +332,7 @@
     Snd.unlock();
     if (state !== 'play' || joy.id !== null) return;
     usingTouch = e.pointerType !== 'mouse';
+    if (G && G.sumo.ok) { const b = sumoBtn(); if ((e.clientX - b.x) ** 2 + (e.clientY - b.y) ** 2 < (b.r + 8) ** 2) { useSumo(); return; } }
     if (G && G.ally.ok) { const b = allyBtn(); if ((e.clientX - b.x) ** 2 + (e.clientY - b.y) ** 2 < (b.r + 8) ** 2) { useAlly(); return; } }
     joy.id = e.pointerId; joy.active = true;
     joy.bx = joy.x = e.clientX; joy.by = joy.y = e.clientY;
@@ -353,7 +359,7 @@
     if (b(14)) ax = -1; if (b(15)) ax = 1; if (b(12)) ay = -1; if (b(13)) ay = 1;
     if (ax || ay || g.buttons.some((x) => x.pressed)) usingTouch = false;
     pad.x = ax; pad.y = ay;
-    if (state === 'play') { if (down(9)) pauseGame(); if (down(2) || down(3)) useAlly(); }
+    if (state === 'play') { if (down(9)) pauseGame(); if (down(2)) useAlly(); if (down(3)) useSumo(); }
     else {
       pad.navT -= dt;
       if ((Math.abs(ax) > 0.6 || Math.abs(ay) > 0.6) && pad.navT <= 0) {
@@ -435,10 +441,10 @@
     G = {
       seed, rng,
       t: 0, clock: 0,
-      player: { x: 0, y: 0, px: 0, py: 0, r: 14, hp: T.HP, max: T.HP, inv: 0, fx: 1, fy: 0, moving: false, hurtT: 0 },
-      hpGhost: T.HP, ghostHold: 0,
+      player: { x: 0, y: 0, px: 0, py: 0, r: 14, hp: CHARS[selChar].hp || T.HP, max: CHARS[selChar].hp || T.HP, inv: 0, fx: 1, fy: 0, moving: false, hurtT: 0 },
+      hpGhost: CHARS[selChar].hp || T.HP, ghostHold: 0, sumo: { ok: false, cd: 0, t: 0, x: 0, y: 0, drop: 0, tick: 0 }, sumoAt: 0,
       mode: selMode, char: selChar, weapons: Object.assign({ [CHARS[selChar].weapon]: 1 }, WEAP['rod_' + selChar] ? { ['rod_' + selChar]: 1 } : {}), subs: {},
-      wcd: { sickle: 0.4, sling: 0.3, bubble: 0, club: 0.6, sword: 0.5, zap: 0, boom: 0, mine: 0, rod_chiikawa: 0.8, rod_hachiware: 0.8, rod_usagi: 1, it_naruto: 0, it_tempura: 0, it_rocket: 0, top: 0 }, slash: null, rods: [],
+      wcd: { sickle: 0.4, sling: 0.3, bubble: 0, club: 0.6, sword: 0.5, zap: 0, boom: 0, mine: 0, rod_chiikawa: 0.8, rod_hachiware: 0.8, rod_usagi: 1, rod_rakko: 0.6, it_naruto: 0, it_tempura: 0, it_rocket: 0, top: 0 }, slash: null, rods: [],
       eshots: [], warns: [], fx: [], booms: [], mines: [], waves: [], whirl: null, items: [], tops: [], orbA: 0,
       arena: null, biome: 0, biomeT: 0, evIdx: 0, pull: null, grabs: [],
       bossIdx: 0, bossesBeaten: 0, rushDone: false, winT: 0, skin: null,
@@ -598,7 +604,7 @@
   function hurtEnemy(e, dmg, fx, fy, kb) {
     if (e.dead || e.under || e.air || e.inv) return;
     if (e.type === 'boss' && e.st === 'stun') dmg *= 2;
-    if (e.type === 'boss' && G.char === 'rakko') dmg *= 1.3; // 랏코 특성 '토벌 고수'
+    if (G.char === 'rakko') dmg *= e.type === 'boss' ? 1.2 * 1.3 : 1.2; // 랏코 특성 '토벌 고수'
     e.hp -= dmg; e.flash = 0.08; e.sq = 1;
     const dx = e.x - fx, dy = e.y - fy, d = Math.hypot(dx, dy) || 1;
     const kbm = e.type === 'boss' ? 0.08 : e.type === 'clone' ? 0.2 : e.type === 'big' || e.type === 'charger' ? 0.5 : 1;
@@ -646,7 +652,8 @@
       G.winT = 1.8;
       return;
     }
-    for (const o of G.enemies) if (o.type === 'clone' || o.type === 'fluff') { o.dead = true; burst(o.x, o.y, '#f0e6da', 6); }
+    for (const o of G.enemies) if (o.type === 'clone' || o.type === 'fluff' || o.type === 'mermaid') { o.dead = true; burst(o.x, o.y, '#f0e6da', 6); }
+    if (G.bossesBeaten === 1) G.sumoAt = G.t + 1.7; // 세이렌 뒤 섬아저씨 합류 (Q)
     banner(e.name + '을(를) 쫓아냈어요!');
     if (G.bossesBeaten === 2) G.allyAt = G.t + 1.7; // 축하 배너가 지나간 뒤 동료 합류
   }
@@ -675,6 +682,54 @@
     A.a.forEach((h, i) => { h.x = P.x + (i ? 46 : -46); h.y = P.y - 10; h.cd = 0.2; h.jump = null; fx({ k: 'ring', x: h.x, y: h.y - 16, r: 70, col: i ? '#7cc48a' : '#ffd23f', w: 8, life: 0.5 }); burst(h.x, h.y - 16, i ? '#7cc48a' : '#ffd23f', 16); });
     banner('동료 출동!'); Snd.play('cheer'); addTrauma(0.25);
   }
+  // 섬아저씨 (Q): 하늘에서 쿵 떨어져 주변을 날려 버리고, 5초 동안 손바닥 밀치기
+  function unlockSumo() {
+    G.sumo.ok = true; G.sumo.cd = 0;
+    banner('섬아저씨가 동료가 됐어요!');
+    toast(usingTouch ? '오른쪽 아래 섬아저씨 버튼을 누르면 쿵!' : 'Q 키(게임패드 Y)를 누르면 섬아저씨가 쿵!', 5000);
+    Snd.play('cheer');
+  }
+  function useSumo() {
+    const S = G && G.sumo;
+    if (!S || !S.ok || S.cd > 0 || state !== 'play') return;
+    const P = G.player;
+    S.cd = T.SUMO_CD; S.t = T.SUMO_DUR + 0.55; S.x = P.x + 40; S.y = P.y - 10; S.drop = 0.55; S.tick = 0.6;
+    warnAt(S.x, S.y, 170, 0.55, 0, '#e0a830');
+    banner('섬아저씨 출동!'); Snd.play('dash', 0.6);
+  }
+  function updSumo(dt) {
+    const S = G.sumo, P = G.player;
+    if (!S.ok) return;
+    S.cd = Math.max(0, S.cd - dt);
+    if (S.t <= 0) return;
+    S.t -= dt;
+    if (S.drop > 0) {
+      S.drop -= dt;
+      if (S.drop <= 0) {
+        // 쿵! 큰 피해 + 멀리 날리기, 보스는 잠깐 기절
+        near(S.x, S.y, 220, (e) => {
+          if (e.dead || (e.x - S.x) ** 2 + (e.y - S.y) ** 2 > (170 + e.r) ** 2) return;
+          hurtEnemy(e, e.type === 'boss' ? 120 : 90, S.x, S.y, 520);
+          if (e.type === 'boss' && !e.dead && (e.st === 'chase' || e.st === 'warn')) { e.st = 'stun'; e.stT = 1.2; }
+        });
+        G.eshots = G.eshots.filter((b) => (b.x - S.x) ** 2 + (b.y - S.y) ** 2 > 170 * 170);
+        fx({ k: 'ring', x: S.x, y: S.y, r: 200, col: '#ffd23f', w: 16, life: 0.6 }); fx({ k: 'flash', x: S.x, y: S.y, r: 150, col: '#fff3c4', life: 0.3 });
+        feedback('large', S.x, S.y, '#e0c59a'); Snd.play('stomp', 0.6);
+      }
+      return;
+    }
+    // 따라다니며 손바닥 밀치기
+    const k = 1 - Math.exp(-4 * dt);
+    S.x += (P.x + 44 - S.x) * k; S.y += (P.y - 6 - S.y) * k;
+    S.tick -= dt;
+    if (S.tick <= 0) {
+      S.tick = 0.45; S.slap = 0.15;
+      near(S.x, S.y, 130, (e) => { if (!e.dead && (e.x - S.x) ** 2 + (e.y - S.y) ** 2 < (95 + e.r) ** 2) hurtEnemy(e, 28, S.x, S.y, 360); });
+      Snd.play('hit', 0.7);
+    }
+    if (S.slap > 0) S.slap -= dt;
+    if (S.t <= 0) { burst(S.x, S.y - 30, '#ffffff', 14); puff(S.x, S.y - 30, 40, '#ffffff'); }
+  }
   function hurtPlayer(dmg, src) {
     const P = G.player;
     if (G.qaInv || P.inv > 0) return;
@@ -699,7 +754,7 @@
     G.healGlow = 1;
     Snd.play('heal');
   }
-  const ECOL = { fluff: '#f0e6da', slime: '#b5d67a', hopper: '#f6b3c4', big: '#ffd84a', swoop: '#ffffff', burrow: '#a0704a', thrower: '#9ccf6e', spitter: '#ffd84a', charger: '#e8574c', clone: '#5a4a6a', stag: '#b5384f', mace: '#f6b8d0', grab: '#f6c9a8' };
+  const ECOL = { fluff: '#f0e6da', slime: '#b5d67a', hopper: '#f6b3c4', big: '#ffd84a', swoop: '#ffffff', burrow: '#a0704a', thrower: '#9ccf6e', spitter: '#ffd84a', charger: '#e8574c', clone: '#5a4a6a', stag: '#b5384f', mace: '#f6b8d0', grab: '#f6c9a8', mermaid: '#ff8a80' };
   const colorOf = (e) => ECOL[e.type] || '#ff8a8a';
 
   // ---------- 한 단계 (1/60초) ----------
@@ -799,7 +854,9 @@
     updGrabs(dt); if (state !== 'play') return;
     updItems(dt);
     if (G.allyAt && G.t >= G.allyAt) { G.allyAt = 0; unlockAlly(); }
+    if (G.sumoAt && G.t >= G.sumoAt) { G.sumoAt = 0; unlockSumo(); }
     updAlly(dt);
+    updSumo(dt);
     updFx(dt);
     G.enemies = G.enemies.filter((e) => !e.dead);
     updGems(dt);
@@ -1051,7 +1108,12 @@
     const P = G.player, t0 = nearestN(P.x, P.y, 420, 1)[0];
     if (!t0) { G.wcd[k] = 0.2; return; }
     const a = Math.atan2(t0.y - P.y, t0.x - P.x);
-    if (k === 'rod_chiikawa') {
+    if (k === 'rod_rakko') {
+      // 해달의 칼: 빙글빙글 날아가 모두 베고 돌아와요 (돌아올 때도 베요)
+      G.wcd[k] = 1.6 - 0.1 * (l - 1);
+      const n = l >= 5 ? 3 : l >= 3 ? 2 : 1;
+      for (let i = 0; i < n; i++) { const b = a + (i - (n - 1) / 2) * 0.5; G.rods.push({ k, x: P.x, y: P.y - 14, vx: Math.cos(b) * 620, vy: Math.sin(b) * 620, rot: 0, t: 0, back: false, hit: new Set(), dmg: 40 + 12 * (l - 1), ring: l >= 5 }); }
+    } else if (k === 'rod_chiikawa') {
       // 분홍: 맞으면 가까운 다른 적에게 튕겨요
       G.wcd[k] = 1.8 - 0.12 * (l - 1);
       G.rods.push({ k, x: P.x, y: P.y - 14, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, rot: 0, life: 1.2, hit: new Set(), left: l >= 5 ? 6 : 2 + Math.floor(l / 2), dmg: 20 + 5 * (l - 1), pop: l >= 5 });
@@ -1074,6 +1136,16 @@
   function updRods(dt) {
     for (const r of G.rods) {
       r.rot += dt * 16;
+      if (r.k === 'rod_rakko') {
+        const P = G.player; r.t += dt;
+        if (!r.back) { r.vx *= Math.exp(-2.4 * dt); r.vy *= Math.exp(-2.4 * dt); if (r.t > 0.5) { r.back = true; r.hit.clear(); } }
+        else { const dx = P.x - r.x, dy = P.y - 14 - r.y, d = Math.hypot(dx, dy) || 1; r.vx = dx / d * 700; r.vy = dy / d * 700; if (d < 26) { r.done = true; if (r.ring) G.waves.push({ x: P.x, y: P.y, R0: 30, R1: 160 * area(), t: 0, dur: 0.3, dmg: r.dmg * 0.6, hit: new Set(), col: '#cfd8e6' }); } }
+        r.x += r.vx * dt; r.y += r.vy * dt;
+        if (Math.random() < 0.7) G.parts.push({ x: r.x, y: r.y, vx: 0, vy: 0, t: 0, life: 0.25, col: '#e6ecf5', r: 3 });
+        near(r.x, r.y, 70, (e) => { if (!e.dead && !e.under && !r.hit.has(e) && (e.x - r.x) ** 2 + (e.y - r.y) ** 2 < (e.r + 26) ** 2) { r.hit.add(e); hurtEnemy(e, r.dmg, r.x, r.y, 160); } });
+        if (r.t > 3) r.done = true;
+        continue;
+      }
       if (r.k === 'rod_usagi') {
         r.t += dt; const q = Math.min(1, r.t / r.dur);
         r.x = r.x0 + (r.x1 - r.x0) * q; r.y = r.y0 + (r.y1 - r.y0) * q; r.h = Math.sin(q * Math.PI) * 140;
@@ -1102,7 +1174,7 @@
         } else if (--r.pierce < 0) r.life = 0;
       });
     }
-    G.rods = G.rods.filter((r) => !r.done && (r.k === 'rod_usagi' || r.life > 0));
+    G.rods = G.rods.filter((r) => !r.done && (r.k === 'rod_usagi' || r.k === 'rod_rakko' || r.life > 0));
   }
   // 범위 폭발 (꽃폭탄 · 폭발 도토리 · 비눗방울 터짐)
   function boomAt(x, y, R, dmg, col) {
@@ -1160,6 +1232,19 @@
         if (e.st === 'warn') { if (e.stT <= 0) { e.st = 'charge'; e.stT = 0.55; burst(e.x, e.y, '#e8574c', 6); } }
         else if (e.st === 'charge') { e.x += e.dx * 380 * dt; e.y += e.dy * 380 * dt; if (e.stT <= 0) { e.st = 'move'; e.cd = 3.5; } }
         else { chase(e.spd); if (e.cd <= 0 && d < 280) { e.st = 'warn'; e.stT = 0.8; e.dx = dx / d; e.dy = dy / d; e.chg = 380; e.chgT = 0.55; Snd.play('warn'); } }
+      } else if (e.type === 'mermaid') {
+        // 인어: 세이렌 곁을 헤엄치다 다가와요. 하드 모드에서만 특수 공격 (조준선 물줄기 · 물방울 부채)
+        const B = G.boss;
+        if (e.st === 'aim') { if (e.stT <= 0) { e.st = 'move'; e.cd = 3.4; } }
+        else {
+          if (B && d > 140) { const ox = B.x + Math.cos(e.ph * 1.6 + e.side * Math.PI) * 120 - e.x, oy = B.y + Math.sin(e.ph * 1.6 + e.side * Math.PI) * 90 - e.y, ol = Math.hypot(ox, oy) || 1; e.x += (ox / ol * 0.5 + dx / d * 0.5) * e.spd * sf * dt; e.y += (oy / ol * 0.5 + dy / d * 0.5) * e.spd * sf * dt; }
+          else chase(e.spd);
+          if (G.mode === 'hard' && e.cd <= 0 && d < 420) {
+            e.alt = !e.alt;
+            if (e.alt) { e.st = 'aim'; e.stT = 0.9; const a = Math.atan2(dy, dx); lineAt(e.x, e.y - 16, a, 460, 34, 0.85, 11, '#4aa8d8'); Snd.play('warn'); }
+            else { e.cd = 3; const a = Math.atan2(dy, dx); for (let i = -2; i <= 2; i++) eshot(e.x, e.y - 20, a + i * 0.22, 160, { k: 'orb', r: 8, dmg: 7, col: '#7fd3ff' }); Snd.play('bubble', 1.2); }
+          }
+        }
       } else if (e.type === 'stag') {
         // 집게투구: 다가오다 멈춰 집게를 들고(!) → 땅을 찍으면 플레이어 쪽으로 가시 줄이 차례로 솟아요
         if (e.st === 'wind') {
@@ -1231,7 +1316,7 @@
     Snd.play('warn');
   }
   // 세이렌 (1라운드): 음표 고리 · 연속 돌진 · 덫 고리 · 홀리는 노래(끌어당김) · 부하 소환 · 기둥 쿵. 체력 50% 아래면 무대가 좁아지고 더 빨라요.
-  const SIREN_PAT = ['song', 'dash', 'cage', 'charm', 'summon', 'song', 'dash', 'pillars'];
+  const SIREN_PAT = ['mermaid', 'song', 'dash', 'cage', 'charm', 'summon', 'mermaid', 'song', 'dash', 'pillars'];
   function updSiren(e, dt, dx, dy, d, sf) {
     const P = G.player;
     if (!e.enr && e.hp < e.max * 0.5) {
@@ -1242,7 +1327,12 @@
       e.x += (dx / d) * e.spd * sf * dt; e.y += (dy / d) * e.spd * sf * dt;
       if (e.stT > 0) return;
       const p = SIREN_PAT[e.pat++ % SIREN_PAT.length];
-      if (p === 'song') { e.st = 'song'; e.waves = e.enr ? 3 : 2; e.stT = 0.5; banner('세이렌의 노래! 음표 틈으로 빠져요'); fx({ k: 'flash', x: e.x, y: e.y - 50, r: 90, col: '#bfefff', life: 0.4 }); }
+      if (p === 'mermaid') {
+        const alive = G.enemies.filter((o) => o.type === 'mermaid' && !o.dead).length;
+        if (alive >= 2) { e.stT = 0.3; return; }
+        for (let i = alive; i < 2; i++) { const m = spawnEnemy('mermaid', { x: e.x + (i ? 70 : -70), y: e.y + 20 }); m.side = i; m.cd = 2 + i; fx({ k: 'ring', x: m.x, y: m.y - 20, r: 60, col: '#7fd3ff', w: 6, life: 0.5 }); burst(m.x, m.y - 20, '#bfefff', 14); }
+        banner(G.mode === 'hard' ? '인어 2마리 등장! 물줄기를 조심해요' : '세이렌이 인어 2마리를 불렀어요!'); Snd.play('boss'); e.st = 'chase'; e.stT = 1.6;
+      } else if (p === 'song') { e.st = 'song'; e.waves = e.enr ? 3 : 2; e.stT = 0.5; banner('세이렌의 노래! 음표 틈으로 빠져요'); fx({ k: 'flash', x: e.x, y: e.y - 50, r: 90, col: '#bfefff', life: 0.4 }); }
       else if (p === 'dash') { e.rolls = e.enr ? 3 : 2; bossWarn(e); e.chg = 470; e.chgT = 0.5; e.stT = 0.75; }
       else if (p === 'cage') { cageAt(P.x, P.y, '#4aa8d8', 12, e.enr ? 2 : 1, 0.45); banner('물방울 덫! 틈을 찾아 나가요'); Snd.play('warn'); e.st = 'chase'; e.stT = e.enr ? 2.2 : 2.8; }
       else if (p === 'charm') { e.st = 'charm'; e.stT = 2.4; e.tick = 0; G.pull = { x: e.x, y: e.y, v: e.enr ? 85 : 65, t: 2.4, src: e }; banner('홀리는 노래! 끌려가지 않게 반대로 달려요'); Snd.play('boss'); }
@@ -2119,6 +2209,7 @@
     }
     drawPlayer(ix, iy, now);
     drawAllies(now);
+    drawSumo(now);
     // 도토리 · 검기
     for (const s of G.shots) {
       const x = lerp(s.px, s.x, alpha), y = lerp(s.py, s.y, alpha);
@@ -2151,7 +2242,7 @@
         ctx.drawImage(shadow, r.x - 12, r.y - 4, 24, 8);
       }
       ctx.save(); ctx.translate(r.x, r.y - (r.h || 0)); ctx.rotate(r.rot);
-      const H = r.k === 'rod_usagi' ? 46 : 38;
+      const H = r.k === 'rod_usagi' ? 46 : r.k === 'rod_rakko' ? 30 : 38;
       if (spr) { const W = H * spr.width / spr.height; ctx.drawImage(spr, -W / 2, -H / 2, W, H); }
       else { ctx.fillStyle = r.k === 'rod_chiikawa' ? '#ff8fb1' : r.k === 'rod_hachiware' ? '#6fb3f2' : '#ffe066'; ctx.fillRect(-3, -H / 2, 6, H); }
       ctx.restore();
@@ -2243,6 +2334,7 @@
     drawArrows(sc);
     drawHUD(now);
     drawAllyBtn(now);
+    drawSumoBtn(now);
     if (joy.active && state === 'play') {
       ctx.globalAlpha = 0.35; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(joy.bx, joy.by, joy.R, 0, TAU); ctx.fill();
       const dx = joy.x - joy.bx, dy = joy.y - joy.by, l = Math.hypot(dx, dy), m = Math.min(l, joy.R);
@@ -2421,6 +2513,32 @@
   }
   // 동료 소환 버튼 (오른쪽 아래, 쿨타임 동안 회색 부채꼴)
   const allyBtn = () => ({ x: VW - 58 - safe.r, y: VH - 64 - safe.b, r: 40 });
+  const sumoBtn = () => ({ x: VW - 58 - safe.r - (G.ally.ok ? 100 : 0), y: VH - 64 - safe.b, r: 40 });
+  function drawSumo(t) {
+    const S = G.sumo;
+    if (!S.ok || S.t <= 0) return;
+    const spr = ART.sumo, fall = S.drop > 0 ? S.drop / 0.55 : 0, fade = Math.min(1, S.t / 0.4);
+    ctx.drawImage(shadow, S.x - 34 * (1 - fall * 0.6), S.y - 8, 68 * (1 - fall * 0.6), 18);
+    ctx.globalAlpha = fade;
+    const H = 84 * (S.slap > 0 ? 1.06 : 1), y = S.y - fall * 420;
+    if (spr) { const W = H * spr.width / spr.height, sk = S.slap > 0 ? 1.1 : 1; ctx.drawImage(spr, S.x - W * sk / 2, y - H, W * sk, H); }
+    else { ctx.fillStyle = '#f3e3c4'; ctx.beginPath(); ctx.arc(S.x, y - 40, 34, 0, TAU); ctx.fill(); }
+    if (S.slap > 0) { ctx.globalAlpha = 0.6 * fade; ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(S.x, S.y - 30, 95, 0, TAU); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  }
+  function drawSumoBtn(t) {
+    const S = G.sumo;
+    if (!S.ok) return;
+    const b = sumoBtn(), ready = S.cd <= 0;
+    ctx.globalAlpha = 0.92; ctx.fillStyle = ready ? '#fff4c8' : '#e9e1d8'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, TAU); ctx.fill();
+    ctx.lineWidth = 4; ctx.strokeStyle = ready ? '#e0a830' : '#bcae9f'; ctx.stroke();
+    const spr = ART.sumo; if (spr) { const h = 52, w = h * spr.width / spr.height; ctx.drawImage(spr, b.x - w / 2, b.y - h / 2 - 2, w, h); }
+    if (!ready) { ctx.globalAlpha = 0.55; ctx.fillStyle = '#4a3b35'; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.arc(b.x, b.y, b.r, -Math.PI / 2, -Math.PI / 2 + TAU * (S.cd / T.SUMO_CD)); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; ctx.fillStyle = '#fff'; ctx.font = fs(20); ctx.textAlign = 'center'; ctx.fillText(Math.ceil(S.cd), b.x, b.y + 7); }
+    else { const p = 1 + Math.sin(t * 6) * 0.06; ctx.globalAlpha = 0.6; ctx.strokeStyle = '#e0a830'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * p + 4, 0, TAU); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#4a3b35'; ctx.font = fs(14); ctx.textAlign = 'center';
+    ctx.fillText(usingTouch ? '섬아저씨' : '섬아저씨 [Q]', b.x, b.y + b.r + 16);
+  }
   function drawAllyBtn(t) {
     const A = G.ally;
     if (!A.ok) return;
@@ -2535,7 +2653,7 @@
   function outText(txt, x, y, col) { ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(74,59,53,.9)'; ctx.strokeText(txt, x, y); ctx.fillStyle = col || '#fff'; ctx.fillText(txt, x, y); }
   function weaponIcon(k, x, y, s) {
     const W = WEAP[k] || SUBS[k];
-    if (W && W.img && ART[k]) { const spr = ART[k], h = s * 0.95, w = h * spr.width / spr.height; ctx.save(); ctx.translate(x + s / 2, y + s / 2); ctx.rotate(-0.45); ctx.drawImage(spr, -w / 2, -h / 2, w, h); ctx.restore(); }
+    if (W && W.img && ART[k]) { const spr = ART[k], ar = spr.width / spr.height, h = Math.min(s * 0.95, s * 1.2 / ar), w = h * ar; ctx.save(); ctx.translate(x + s / 2, y + s / 2); ctx.rotate(-0.45); ctx.drawImage(spr, -w / 2, -h / 2, w, h); ctx.restore(); }
     else drawIco(W ? W.ic : 'star', x, y, s);
   }
   function drawHUD(t) {

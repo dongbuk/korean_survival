@@ -177,7 +177,7 @@ th{color:var(--soft);font-weight:400}
 .pv .pcells{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
 .pv .pcells span{width:34px;height:38px;border:3px dashed #d6c4b3;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
 .pv .pcells span.gap{border:0;width:10px;background:none}
-.card .ic img{height:52px;width:auto;transform:rotate(-20deg)}
+.card .ic img{height:52px;width:auto;max-width:96px;object-fit:contain;transform:rotate(-20deg)}
 .dexgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
 @media (max-width:600px){.dexgrid{grid-template-columns:repeat(4,1fr)}}
 .dexcell{background:#fff;border:3px solid var(--line);border-radius:16px;padding:6px 4px;text-align:center;font-size:14px}
@@ -241,7 +241,7 @@ body.big #toast,body.big #banner span{font-size:22px}
 .char .nm{font-size:21px;line-height:1.1}
 .char .wp{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--ink);margin-top:3px;flex-wrap:wrap}
 .char .wp .ico{width:20px;height:20px}
-.char .wp img{height:20px;width:auto;transform:rotate(-25deg)}
+.char .wp img{height:20px;width:auto;max-width:34px;object-fit:contain;transform:rotate(-25deg)}
 .char .ds{font-size:12.5px;margin-top:3px}
 .char .best{font-size:12px}
 .char.on{border-color:var(--pink-d);background:#fff1f4;box-shadow:0 0 0 4px rgba(224,120,144,.25),0 4px 0 rgba(74,59,53,.08)}
@@ -271,6 +271,8 @@ body.big #toast,body.big #banner span{font-size:22px}
 @media (max-width:760px){.title-panel{grid-template-columns:1fr}.tiles{grid-template-columns:repeat(3,1fr)}}
 @media (max-height:700px) and (min-width:761px){.title-panel{padding:14px 20px}.logo{font-size:40px}.quest{padding:8px 12px}.q-body{font-size:18px}.char{min-height:84px}.btn.start{min-height:54px}.tile{min-height:62px;padding:6px 4px}.tile .ico{width:28px;height:28px}}
 @media (max-height:500px) and (min-width:600px){
+  .modes{gap:6px}.mode{padding:2px 8px;border-radius:14px}.mode .ds{display:none}.mode .nm{font-size:16px}.mode .ico{width:20px;height:20px;grid-row:auto}
+  .tp-right .sec{margin:2px 0}.btn.start{min-height:42px;margin-top:6px;font-size:20px}
   .title-panel{padding:10px 16px;gap:4px 16px}
   .logo{font-size:30px;margin-bottom:4px}
   .kicker,.q-steps,.q-rule,#qcount{display:none}
@@ -312,7 +314,7 @@ body.big #toast,body.big #banner span{font-size:22px}
 .card.k-up{--k:#7cc48a}.card.k-sub{--k:#b9a3ff}.card.k-heal{--k:#f6a6b8}.card.k-evo{--k:var(--gold)}
 .card .ic{width:68px;height:68px;margin:0 auto;border-radius:50%;background:color-mix(in srgb,var(--k) 25%,#fff);display:flex;align-items:center;justify-content:center;border:3px solid var(--k)}
 .card .ic .ico{width:44px;height:44px}
-.card .ic img{height:46px;width:auto;transform:rotate(-20deg)}
+.card .ic img{height:46px;width:auto;max-width:84px;object-fit:contain;transform:rotate(-20deg)}
 .card .pips{display:flex;justify-content:center;gap:4px;margin-top:4px}
 .card .pips i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
 .card .pips i.on{background:var(--k)}

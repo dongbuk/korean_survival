@@ -21,6 +21,9 @@ window.ART_FILES = {
   stag: 'enemies/stag.png',   // 새 몬스터 · 빨강 집게투구: 땅을 찍어 가시 줄을 보내요
   mace: 'enemies/mace.png',   // 새 몬스터 · 쇠공 토끼: 쇠공을 빙빙 돌리고 굴려요
   grab: 'enemies/grab.png',   // 새 몬스터 · 긴팔 털뭉치: 팔을 뻗어 끌어당겨요
+  mermaid: 'enemies/mermaid.png', // 세이렌이 부르는 인어 (하드 모드에선 물줄기·물방울 공격)
+  sumo: 'allies/sumo.png',         // 세이렌을 쓰러뜨리면 합류하는 섬아저씨 (Q 스킬)
+  rod_rakko: 'items/rakko_sword.png', // 랏코 전용 칼
   // 던지는 물건 (선생님이 주신 물건 그림)
   it_naruto: 'items/naruto.png',   // 치이카와 전용 · 나루토 원반 (몸 주위를 돌아요)
   it_tempura: 'items/tempura.png', // 하치와레 전용 · 새우튀김 (화면 가장자리에서 튕겨요)
