@@ -99,6 +99,15 @@ td.nq{white-space:pre-line;line-height:1.45}
 #quizFb .big{font-size:30px}
 /* 카드 */
 .cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+/* 도와줄 친구 고르기: 7장까지 · 화면이 낮으면 스크롤 */
+.cards.helpers{grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:10px}
+.cards.helpers .card{padding:20px 10px 10px}
+.card.k-friend{--k:#ffc46b}
+.card .ic.hic{display:flex;justify-content:center;align-items:flex-end;gap:2px;height:60px;width:auto;border:0;border-radius:0;background:none}
+.card .ic.hic img{height:56px;width:auto;max-width:60px;object-fit:contain;transform:none}
+.cards.helpers .card .nm{font-size:20px}
+.cards.helpers .card .ds{font-size:14px}
+@media (max-height:500px){.cards.helpers{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.card .ic.hic{height:44px}.card .ic.hic img{height:42px}.cards.helpers .card .ds{font-size:13px}}
 .card{font-family:var(--font);border:4px solid var(--line);border-radius:22px;background:#fff;padding:14px 12px;cursor:pointer;color:var(--ink);
   text-align:center;transition:transform .1s;animation:pop .3s ease-out both}
 .card:hover{transform:translateY(-4px);border-color:var(--gold)}
@@ -122,6 +131,10 @@ th{color:var(--soft);font-weight:400}
 /* HUD 버튼 */
 #pauseBtn{position:fixed;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:5;display:none;
   width:52px;height:52px;border-radius:50%;border:0;background:rgba(255,250,243,.9);font-size:22px;color:var(--ink);box-shadow:0 4px 0 rgba(74,59,53,.15);cursor:pointer;font-family:var(--font)}
+#musicBtn{position:fixed;right:max(12px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 62px);z-index:5;display:none;align-items:center;justify-content:center;
+  width:52px;height:52px;border-radius:50%;border:0;background:rgba(255,250,243,.9);box-shadow:0 4px 0 rgba(74,59,53,.15);cursor:pointer}
+#musicBtn .ico{width:30px;height:30px}#musicBtn .slash{display:none}#musicBtn.off .slash{display:inline}#musicBtn.off{background:rgba(233,225,216,.9)}
+#musicBtn:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
 #banner{position:fixed;left:0;right:0;top:22%;text-align:center;z-index:6;pointer-events:none;display:none}
 #banner span{display:inline-block;background:rgba(74,59,53,.85);color:#fff;font-size:clamp(24px,6vw,40px);padding:10px 28px;border-radius:20px;animation:pop .3s ease-out}
 #toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;pointer-events:none;display:none;
@@ -247,7 +260,7 @@ body.big #toast,body.big #banner span{font-size:22px}
 .char.on{border-color:var(--pink-d);background:#fff1f4;box-shadow:0 0 0 4px rgba(224,120,144,.25),0 4px 0 rgba(74,59,53,.08)}
 .char.on::after{content:'';position:absolute;top:-9px;right:-9px;width:26px;height:26px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='19' fill='%23e07890' stroke='%234a3b35' stroke-width='3'/%3E%3Cpath d='M14 24 L21 31 L34 17' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .char.locked .nm{display:flex;align-items:center;gap:4px;color:var(--soft)}
-.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .mode{font-family:var(--font);color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:18px;padding:6px 10px;cursor:pointer;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left;box-shadow:0 4px 0 rgba(74,59,53,.08);transition:transform .1s}
 .mode .ico{grid-row:1/3;width:30px;height:30px}
 .mode .nm{font-size:20px;line-height:1.1}
@@ -256,6 +269,25 @@ body.big #toast,body.big #banner span{font-size:22px}
 .mode:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
 .mode.on.m-normal{border-color:#4f9a5e;background:#eef8ea;box-shadow:0 0 0 4px rgba(79,154,94,.22)}
 .mode.on.m-hard{border-color:#c0392b;background:#fdecea;box-shadow:0 0 0 4px rgba(192,57,43,.2)}
+@media (max-width:520px){.mode{grid-template-columns:1fr;justify-items:center;text-align:center;padding:6px 4px}.mode .ico{grid-row:auto;width:24px;height:24px}.mode .nm{font-size:17px;white-space:nowrap}.mode .ds{font-size:12px;white-space:nowrap}}
+.tbtn{font-family:var(--font);font-size:13px;margin-left:8px;padding:2px 10px;border-radius:999px;border:2px solid var(--line);background:#fff;color:var(--soft);cursor:pointer;vertical-align:middle}
+.tbtn.on{border-color:#5b3aa8;background:#e6dcfb;color:#5b3aa8}
+#testBar{position:fixed;left:max(10px,env(safe-area-inset-left));top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:6px;background:rgba(255,250,243,.88);border:3px solid #5b3aa8;border-radius:16px;padding:8px;font-family:var(--font)}
+#testBar[hidden]{display:none}
+#testBar b{color:#5b3aa8;font-size:14px;text-align:center}
+#testBar button{font-family:var(--font);font-size:14px;padding:6px 10px;min-height:34px;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap}
+#testBar button:active{transform:translateY(1px)}
+@media (max-height:500px){#testBar{top:122px;transform:none;gap:4px;padding:5px}#testBar b{font-size:12px}#testBar button{font-size:12px;min-height:28px;padding:3px 8px}}
+@media (hover:none){#testBar .k{display:none}}
+.mode.m-extreme{background:#f1ecfb}
+.char .bon{color:#5b3aa8}.char .bon.off{color:var(--soft)}.char .bon .ico{width:12px;height:12px;vertical-align:-1px}
+.legal{grid-column:1/-1;margin:8px 0 0;font-size:12.5px;color:var(--soft);text-align:center;line-height:1.5}
+.lnk{font-family:var(--font);font-size:12.5px;color:var(--ink);background:none;border:0;border-bottom:2px solid var(--line);padding:0 2px;margin-left:4px;cursor:pointer}
+.lnk:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.legaltext{text-align:left;font-size:16px;line-height:1.6}.legaltext ul{padding-left:20px;margin:8px 0}.legaltext li{margin:4px 0}
+.legaltext .kid{background:#fff4c8;border-radius:12px;padding:10px 12px;margin-top:10px}
+@media (max-height:500px){.legal{margin-top:4px;font-size:12px}.lnk{font-size:12px}}
+.mode.locked{background:#eee8e2;color:var(--soft);border-style:dashed;cursor:not-allowed}.mode.locked:hover{transform:none}.mode.on.m-extreme{border-color:#5b3aa8;background:#e6dcfb;box-shadow:0 0 0 4px rgba(91,58,168,.25)}
 .btn.start{margin-top:12px;font-size:26px;min-height:64px;border-radius:22px;width:100%}
 .btn.start .ico{width:28px;height:28px}
 .tiles{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px;border-top:3px dashed var(--line);padding-top:12px}
@@ -357,6 +389,7 @@ body.big #toast,body.big #banner span{font-size:22px}
 <body>
 <canvas id="cv"></canvas>
 <button id="pauseBtn" aria-label="잠깐 쉬기"><i data-ico="pause"></i></button>
+<button id="musicBtn" aria-label="배경 음악 끄기" aria-pressed="true"><svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><path d="M18 34V12l20-5v22" fill="none" stroke="#4a3b35" stroke-width="4" stroke-linejoin="round"/><circle cx="13" cy="34" r="6" fill="#f6a5b8" stroke="#4a3b35" stroke-width="3"/><circle cx="33" cy="29" r="6" fill="#f6a5b8" stroke="#4a3b35" stroke-width="3"/><path class="slash" d="M8 8L40 40" stroke="#c0392b" stroke-width="5" stroke-linecap="round"/></svg></button>
 <div id="banner"><span></span></div>
 <div id="toast"></div>
 
@@ -382,8 +415,8 @@ body.big #toast,body.big #banner span{font-size:22px}
       <h1 class="logo">치이카와의 모험</h1>
       <div class="quest">
         <div class="q-head"><i data-ico="crown"></i>오늘의 토벌 의뢰</div>
-        <div class="q-body">10분 버티고 <b>검은 별똥별</b> 물리치기!</div>
-        <div class="q-steps"><span><b>2:30</b> 세이렌</span><span><b>5:00</b> 아노코</span><span><b>7:30</b> 대습격</span><span class="last"><b>10:00</b> 검은 별똥별</span></div>
+        <div class="q-body" id="qBody">10분 버티고 <b>검은 별똥별</b> 물리치기!</div>
+        <div class="q-steps" id="qSteps"><span><b>2:30</b> 세이렌</span><span><b>5:00</b> 아노코</span><span><b>7:30</b> 대습격</span><span class="last"><b>10:00</b> 검은 별똥별</span></div>
         <p class="q-rule"><i data-ico="check"></i>맞히면 무기 카드 <i data-ico="cross"></i>틀리면 체력 −10 · 오답 노트에 쏙</p>
       </div>
       <label for="nick">별명</label>
@@ -395,7 +428,7 @@ body.big #toast,body.big #banner span{font-size:22px}
     <div class="tp-right">
       <p class="sec">누구와 모험할까요?</p>
       <div class="chars" id="charList"></div>
-      <p class="sec">난이도</p>
+      <p class="sec">난이도 <button class="tbtn" id="testBtn" type="button">테스트 모드</button></p>
       <div class="modes" id="modeList" role="group" aria-label="난이도"></div>
       <button class="btn start" id="startBtn" data-focus><i data-ico="play"></i>모험 시작</button>
     </div>
@@ -407,6 +440,26 @@ body.big #toast,body.big #banner span{font-size:22px}
       <button class="tile" id="setBtn"><i data-ico="gear"></i><span>설정</span></button>
       <button class="tile teacher" id="editBtn"><i data-ico="lock"></i><span>문항 관리</span></button>
     </nav>
+    <p class="legal">비상업적 교육용 · 우리 반 수업에서만 사용해요 · 캐릭터 저작권은 원작자 나가노와 권리자에게 있어요 <button class="lnk" id="legalBtn" type="button">저작권 안내</button></p>
+  </div>
+</div>
+
+<!-- 저작권 안내 -->
+<div class="ov dim top" id="legal">
+  <div class="panel" style="max-width:560px">
+    <h2 class="ph"><i data-ico="book"></i>저작권 안내</h2>
+    <div class="legaltext">
+      <p>이 게임은 <b>상업적 목적 없이</b>, 우리 반 국어 복습 수업을 위해 선생님이 만든 <b>교육용 자료</b>예요.</p>
+      <ul>
+        <li>'치이카와'와 등장 캐릭터, 그림의 저작권은 <b>원작자 나가노(ナガノ)와 각 권리자</b>에게 있어요. 이 게임은 공식 게임이 아니고, 원작자·권리자와 관계가 없어요.</li>
+        <li>배경 음악의 저작권은 각 곡을 만든 분께 있어요.</li>
+        <li>효과음은 Pixabay 라이선스로 쓸 수 있는 소리예요. 게임 규칙·코드와 문제는 선생님이 직접 만들었어요.</li>
+        <li>입장 코드를 아는 우리 반 학생만 수업 시간에 사용해요. <b>판매하거나 돈을 받지 않고, 인터넷에 공개하거나 다른 곳에 퍼뜨리지 않아요.</b></li>
+        <li>권리자께서 요청하시면 바로 고치거나 사용을 멈출게요.</li>
+      </ul>
+      <p class="kid"><b>친구들에게</b> · 그림과 음악은 만든 사람의 소중한 작품이에요. 게임 화면이나 그림을 캡처해서 SNS에 올리거나 다른 사람에게 보내지 말아 주세요. 우리 교실에서만 즐겨요!</p>
+    </div>
+    <div class="row"><button class="btn" data-close="legal" data-focus>알겠어요</button></div>
   </div>
 </div>
 
@@ -424,11 +477,11 @@ body.big #toast,body.big #banner span{font-size:22px}
       <div class="hw"><i data-ico="heart"></i><div><b>약초</b>초록 약초 옆에 가만히 서 있으면 캐져요. 체력 +20.</div></div>
       <div class="hw"><i data-ico="crown"></i><div><b>보스</b>2:30 세이렌 → 5:00 아노코 → 10:00 검은 별똥별. 반쯤 줄면 약점 문제! 맞히면 기절.</div></div>
       <div class="hw"><i data-ico="skull"></i><div><b>피하기</b>빨간 줄·빨간 원·보라 원·노란 "!"가 보이면 곧 공격이 와요. 비켜요!</div></div>
-      <div class="hw"><i data-ico="ally"></i><div><b>동료</b>아노코를 쓰러뜨리면 외눈이·도깨비가 합류. E 키(태블릿은 오른쪽 아래 버튼)로 7초 함께 싸워요.</div></div>
+      <div class="hw"><i data-ico="ally"></i><div><b>도와줄 친구</b>보스를 쓰러뜨릴 때마다 친구 7팀 중 1팀을 골라요(한 판에 3팀). 차례대로 Q·E·R 키(태블릿은 오른쪽 아래 버튼)로 불러요.</div></div>
       <div class="hw"><i data-ico="sparkle"></i><div><b>무기 진화</b>Lv.5가 되면 새 기술이 생겨요. 보스를 쓰러뜨리면 모습도 바뀌어요.</div></div>
       <div class="hw"><i data-ico="clock"></i><div><b>시계</b>문제 푸는 동안·보스전 동안은 시계가 멈춰요. 천천히 풀어도 돼요.</div></div>
     </div>
-    <p class="sub keys">게임패드: 왼쪽 스틱 이동 · A 고르기 · B 닫기 · X 동료 · Start 쉬기 &nbsp;|&nbsp; 키보드: 화살표로 버튼 이동 · Enter 고르기 · Esc 닫기</p>
+    <p class="sub keys">게임패드: 왼쪽 스틱 이동 · A 고르기 · B 닫기 · Y·X·LB 친구 · Start 쉬기 &nbsp;|&nbsp; 키보드: 화살표로 버튼 이동 · Enter 고르기 · Esc 닫기</p>
     <div class="row"><button class="btn" data-close="how" data-focus>알겠어요</button></div>
   </div>
 </div>
@@ -510,6 +563,24 @@ body.big #toast,body.big #banner span{font-size:22px}
   </div>
 </div>
 
+<!-- 테스트 모드 비밀번호 -->
+<div class="ov dim top2" id="xgate">
+  <div class="panel" style="max-width:400px;text-align:center">
+    <div class="badge-ico"><i data-ico="key"></i></div><h2>테스트 모드</h2>
+    <p class="sub">문제 없이 · 무적으로 · 시간과 보스를 바로 옮기며 플레이해요. 기록에는 남지 않아요.</p>
+    <label for="xgIn" style="text-align:left">비밀번호</label>
+    <input type="password" id="xgIn" autocomplete="off" enterkeyhint="go">
+    <p class="sub" id="xgMsg" style="color:var(--red);min-height:22px"></p>
+    <div class="row"><button class="btn" id="xgGo"><i data-ico="key"></i>켜기</button><button class="btn gray" data-close="xgate">닫기</button></div>
+  </div>
+</div>
+<!-- 테스트 판 도구 -->
+<div id="testBar" hidden aria-label="테스트 도구">
+  <b>테스트</b>
+  <button id="tbInv">무적 켬</button><button id="tbBoss">다음 보스 <span class="k">(B)</span></button><button id="tbTime">+30초 <span class="k">(T)</span></button>
+  <button id="tbLvl">레벨 업 <span class="k">(L)</span></button><button id="tbKill">몬스터 정리 <span class="k">(K)</span></button><button id="tbHit">보스 −25% <span class="k">(N)</span></button>
+</div>
+
 <!-- 선생님 코드 -->
 <div class="ov dim top2" id="tgate">
   <div class="panel" style="max-width:400px;text-align:center">
@@ -556,8 +627,8 @@ body.big #toast,body.big #banner span{font-size:22px}
 
 <!-- 카드 -->
 <div class="ov dim" id="cards">
-  <div class="panel" style="max-width:760px">
-    <h2 class="ph center"><i data-ico="sparkle"></i>정답! 하나를 골라요</h2>
+  <div class="panel" id="cardsPanel" style="max-width:760px">
+    <h2 class="ph center" id="cardsTitle"><i data-ico="sparkle"></i>정답! 하나를 골라요</h2>
     <div class="cards" id="cardList"></div>
   </div>
 </div>
@@ -614,6 +685,7 @@ body.big #toast,body.big #banner span{font-size:22px}
   <div class="panel" style="max-width:460px">
     <h2 class="ph"><i data-ico="gear"></i>설정</h2>
     <label class="check"><input type="checkbox" id="optSound"><i data-ico="sound"></i>소리 켜기</label>
+    <label class="check"><input type="checkbox" id="optMusic"><svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><path d="M18 34V12l20-5v22" fill="none" stroke="#4a3b35" stroke-width="4" stroke-linejoin="round"/><circle cx="13" cy="34" r="6" fill="#f6a5b8" stroke="#4a3b35" stroke-width="3"/><circle cx="33" cy="29" r="6" fill="#f6a5b8" stroke="#4a3b35" stroke-width="3"/><path class="slash" style="display:none" d="M8 8L40 40" stroke="#c0392b" stroke-width="5" stroke-linecap="round"/></svg>배경 음악 켜기</label>
     <label class="slider">소리 크기 <span id="optVolV"></span><input type="range" id="optVol" min="0" max="100" step="10"></label>
     <label class="slider">화면 흔들림 <span id="optShakeV"></span><input type="range" id="optShakeAmt" min="0" max="100" step="10"></label>
     <label class="check"><input type="checkbox" id="optFlash"><i data-ico="sparkle"></i>번쩍임 줄이기</label>

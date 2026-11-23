@@ -2,27 +2,43 @@
 // 원본: 선생님이 주신 그림 두 장 (enemies = 적 시트 줄·칸, heroes = 주인공·동료 시트 줄·칸). 수업용 비공개.
 window.ART_FILES = {
   // 주인공 (오른쪽을 보는 그림이 아니어도 괜찮아요. 왼쪽으로 갈 때 뒤집어 그려요)
-  chiikawa: 'heroes/h11.png',
+  chiikawa: 'heroes/chiikawa_new.png',   // 기본·왼쪽 모습 (오른쪽으로 가면 뒤집어요)
   usagi: 'heroes/h13.png',
-  hachiware: 'heroes/h14.png',
+  hachiware: 'heroes/hachiware_new.png', // 기본·왼쪽 모습 (오른쪽으로 가면 뒤집어요)
   rakko: 'heroes/h22.png',  // 해달 (2줄 2번)
+  bike_chiikawa: 'heroes/bike_chiikawa.png', bike_hachiware: 'heroes/bike_hachiware.png', bike_usagi: 'heroes/bike_usagi.png', // 익스트림 자전거 (그림은 오른쪽을 봐요)
+  rakko_car: 'heroes/rakko_car.png', // 자동차 탄 랏코 (익스트림 Shift · 그림은 왼쪽을 봐요)
   // 몬스터
   slime: 'enemies/e32.png',   // 기본 몬스터 1 (맨 아랫줄 2번)
   hopper: 'enemies/e34.png',  // 기본 몬스터 2 (맨 아랫줄 4번) · 콩콩 뛰어옴
   big: 'enemies/e31.png',     // 3줄 1번 · 느리고 단단한 노랑 갈기 (아노코가 보스가 되면서 바꿨어요)
-  anoko: 'enemies/e11.png',   // 2라운드 보스 아노코 (흰색 털뭉치) · 꼬마 아노코도 같은 그림
+  anoko: 'enemies/anoko_px.png', // 2라운드 보스 아노코 (선생님 그림을 도트로 누끼) · 꼬마 아노코도 같은 그림
   burrow: 'enemies/e13.png',  // 1줄 3번 · 땅속에 숨었다가 튀어나옴
   thrower: 'enemies/e14.png', // 1줄 4번 · 초록 도깨비, 몽둥이를 던짐 (5:00 보스 뒤 동료)
   spitter: 'enemies/e21.png', // 2줄 1번 · 노랑 외눈이, 3갈래 탄 (5:00 보스 뒤 동료)
   charger: 'enemies/e23.png', // 2줄 3번 · 사자탈, 경고선 뒤 돌진
   swoop: 'enemies/e24.png',   // 2줄 4번 · 흰 새, 빙빙 돌다 급강하
-  boss: 'enemies/e12.png',    // 1라운드 보스 세이렌
+  boss: 'enemies/siren.png',  // 1라운드 보스 세이렌 (선생님 그림)
+  siren_rage: 'enemies/siren_rage.png', // 세이렌 체력 20% 이하 레이지 모드 ("알겠어!")
   star: 'enemies/e22.png',    // 마지막 보스 검은 별똥별 (2줄 2번)
   stag: 'enemies/stag.png',   // 새 몬스터 · 빨강 집게투구: 땅을 찍어 가시 줄을 보내요
   mace: 'enemies/mace.png',   // 새 몬스터 · 쇠공 토끼: 쇠공을 빙빙 돌리고 굴려요
   grab: 'enemies/grab.png',   // 새 몬스터 · 긴팔 털뭉치: 팔을 뻗어 끌어당겨요
   mermaid: 'enemies/mermaid.png', // 세이렌이 부르는 인어 (하드 모드에선 물줄기·물방울 공격)
+  beetle: 'enemies/beetle.png',       // 익스트림 2:30 보스 · 풍뎅이 (의태형)
+  nightmare: 'enemies/nightmare.png', // 익스트림 7:30 보스 · 악몽코끼리
+  dekatsuyo: 'enemies/dekatsuyo.png', // 익스트림 10:00 보스 · 데카츠요
+  momonga: 'enemies/momonga.png',     // 데카츠요의 본체 · 매지컬 모몽가 (흑마법)
+  bee: 'enemies/bee.png',             // 익스트림 몬스터 · 꿀벌 (침 돌진)
+  pinkele: 'enemies/pinkele.png',     // 익스트림 몬스터 · 분홍 코끼리 (물폭탄)
+  ode: 'allies/ode.png',           // E 스킬 동료 오데 (노랑 외눈이)
   sumo: 'allies/sumo.png',         // 세이렌을 쓰러뜨리면 합류하는 섬아저씨 (Q 스킬)
+  // 보스를 쓰러뜨리면 고르는 도와줄 친구 (Q·E·R)
+  pj_green: 'helpers/pj_green.png', pj_purple: 'helpers/pj_purple.png', pj_pink: 'helpers/pj_pink.png', pj_white: 'helpers/pj_white.png', // 파자마 파티스
+  kuri: 'helpers/kuri.png', shisa: 'helpers/shisa.png',                 // 쿠리만쥬와 시사
+  armor_silver: 'helpers/armor_silver.png', armor_bronze: 'helpers/armor_bronze.png', armor_gold: 'helpers/armor_gold.png', // 갑옷씨들
+  yogurt: 'helpers/yogurt.png',                                         // 꿀맛맨
+  kani: 'helpers/kani.png', h_momonga: 'helpers/h_momonga.png',         // 카니와 모몽가
   rod_rakko: 'items/rakko_sword.png', // 랏코 전용 칼
   // 던지는 물건 (선생님이 주신 물건 그림)
   it_naruto: 'items/naruto.png',   // 치이카와 전용 · 나루토 원반 (몸 주위를 돌아요)
