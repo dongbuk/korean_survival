@@ -7,6 +7,7 @@
   const ctx = cv.getContext('2d');
   const TAU = Math.PI * 2;
   const QA = /[?&]qa=1/.test(location.search);
+  const VQ = '?v=' + (window.BUILD || ''); // 그림·소리 주소 뒤에 붙여 옛 파일(캐시)을 안 쓰게
   const QA_NONEW = QA && /[?&]nonew=1/.test(location.search); // QA 비교용: 새 몬스터 끄기
   const isTouchDev = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
@@ -37,7 +38,7 @@
   const T = {
     RUN: 600,        // 초: 전투 시계 기준 판 길이 (10분 · 보스전 중엔 시계가 멈춰요)
     RUSH_AT: 450,    // 초: 몬스터 대습격
-    ALLY_CD: 22, ALLY_DUR: 7, SUMO_CD: 16, SUMO_DUR: 5, // 섬아저씨 (Q)
+    ALLY_CD: 30, ALLY_DUR: 6, SUMO_CD: 30, SUMO_DUR: 4, // 11-24: 친구 스킬은 모두 30초 · 지속 1초씩 줄임 // 섬아저씨 (Q)
     CAR_CD: 30, CAR_DUR: 10, // 랏코 자동차 (Shift · 익스트림): 이동 1.5배 · 받는 피해 -20%
     // 동료 소환 쿨타임 · 지속 (초)
     HP: 100,
@@ -226,7 +227,7 @@
   const AUDIO_FILES = window.AUDIO_FILES || {};
   const audioEls = {};
   Object.keys(AUDIO_FILES).forEach((n) => {
-    audioEls[n] = AUDIO_FILES[n].map((f) => { const a = new Audio('audio/' + f); a.preload = 'auto'; return a; });
+    audioEls[n] = AUDIO_FILES[n].map((f) => { const a = new Audio('audio/' + f + VQ); a.preload = 'auto'; return a; });
   });
   const Snd = {
     ac: null, last: {}, voices: 0,
@@ -283,7 +284,7 @@
     els: {}, want: null, duck: 1,
     init() {
       for (const [k, f] of [['main', 'bgm_main.mp3'], ['boss', 'bgm_boss.mp3']]) {
-        const a = new Audio('audio/' + f); a.loop = true; a.preload = 'auto'; a.volume = 0; a.ok = true;
+        const a = new Audio('audio/' + f + VQ); a.loop = true; a.preload = 'auto'; a.volume = 0; a.ok = true;
         a.onerror = () => { a.ok = false; };
         this.els[k] = a;
       }
@@ -367,7 +368,7 @@
       if (k in CHARS && state === 'title') renderChars();
     };
     im.onerror = () => console.warn('그림을 못 불러왔어요:', ART_FILES[k]);
-    im.src = 'art/' + ART_FILES[k];
+    im.src = 'art/' + ART_FILES[k] + VQ;
   });
 
   // 안전 영역 (노치)
@@ -708,7 +709,7 @@
       else if (G.char === 'usagi' && G.rng() < 0.25) { dmg *= 2; crit = true; } // 우라 연타
     }
     e.hp -= dmg; e.flash = 0.08; e.sq = 1;
-    if (G.vamp) { const P = G.player, k = helperOn() ? 0.02 : 0.01; P.hp = Math.min(P.max, P.hp + dmg * k); if (G.hpGhost < P.hp) G.hpGhost = P.hp; } // 흡혈 (친구 스킬 쓰는 동안 2배, 겹치지 않아요)
+    if (G.vamp) { const P = G.player, k = helperOn() ? 0.002 : 0.001; /* 11-24 너프: 1% → 0.1% */ P.hp = Math.min(P.max, P.hp + dmg * k); if (G.hpGhost < P.hp) G.hpGhost = P.hp; } // 흡혈 (친구 스킬 쓰는 동안 2배, 겹치지 않아요)
     const dx = e.x - fx, dy = e.y - fy, d = Math.hypot(dx, dy) || 1;
     const kbm = e.type === 'boss' ? 0.08 : e.type === 'clone' ? 0.2 : e.type === 'big' || e.type === 'charger' ? 0.5 : 1;
     e.kx += (dx / d) * kb * kbm; e.ky += (dy / d) * kb * kbm;
@@ -771,7 +772,7 @@
       return;
     }
     for (const o of G.enemies) if (o.type === 'clone' || o.type === 'fluff' || o.type === 'mermaid' || o.minion) { o.dead = true; burst(o.x, o.y, '#f0e6da', 6); }
-    if (e.kind === 'nightmare') { G.vamp = true; setTimeout(() => { if (G && state === 'play') { banner('흡혈 능력! 준 피해의 1%만큼 회복해요'); toast('친구 스킬(Q·E·R)이 싸우는 동안엔 흡혈이 2배 (2%)', 4500); Snd.play('cheer'); } }, 1800); }
+    if (e.kind === 'nightmare') { G.vamp = true; setTimeout(() => { if (G && state === 'play') { banner('흡혈 능력! 준 피해의 0.1%만큼 회복해요'); toast('친구 스킬(Q·E·R)이 싸우는 동안엔 흡혈이 2배 (0.2%)', 4500); Snd.play('cheer'); } }, 1800); }
     banner(e.name + '을(를) 쫓아냈어요!');
     queueHelperPick(); // 축하 배너가 지나간 뒤 도와줄 친구 고르기
   }
@@ -853,13 +854,13 @@
   // ---------- 도와주는 친구 (보스를 쓰러뜨릴 때마다 1명 골라요 · Q → E → R 순서 · 한 판에 3명까지) ----------
   // 오데와 외계인·섬아저씨는 예전 동작 그대로, 새 친구 5팀은 G.hx[id]에 상태를 둬요.
   const HELPERS = {
-    sumo: { name: '섬아저씨', short: '섬아저씨', arts: ['sumo'], col: '#e0a830', cd: () => T.SUMO_CD, desc: '하늘에서 쿵! 큰 피해로 날려 보내고 5초 동안 손바닥 밀치기 · 보스는 잠깐 기절' },
-    ode: { name: '오데와 외계인', short: '오데', arts: ['ode', 'thrower'], col: '#f2c14e', cd: () => T.ALLY_CD, desc: '7초 동안 오데는 눈빛 광선, 외계인은 뛰어올라 몽둥이 쾅' },
-    pajama: { name: '파자마 파티스', short: '파자마', arts: ['pj_green', 'pj_purple', 'pj_pink', 'pj_white'], col: '#c49af0', cd: () => 20, dur: 7, desc: '7초 동안 둘레에서 춤춰요 · 노래 음표가 적을 쫓고, 춤에 홀린 적은 느려져요 · 마지막에 피날레 쾅' },
-    kuri: { name: '쿠리만쥬와 시사', short: '쿠리·시사', arts: ['kuri', 'shisa'], col: '#e89a5a', cd: () => 22, dur: 6, desc: '쿠리만쥬가 음료를 나눠 체력 회복(약 34), 시사는 만쥬를 던져 펑 터뜨려요' },
-    armor: { name: '갑옷씨들', short: '갑옷씨들', arts: ['armor_silver', 'armor_bronze', 'armor_gold'], col: '#9aa3ad', cd: () => 24, dur: 8, desc: '은갑옷은 방패로 탄을 막고 받는 피해 -40% · 동갑옷은 돌진 베기 · 금갑옷은 땅 내려찍기' },
-    yogurt: { name: '꿀맛맨', short: '꿀맛맨', arts: ['yogurt'], col: '#7cc6d8', cd: () => 20, dur: 7, desc: '하늘을 날며 요거트를 쏴요 · 떨어진 곳에 끈적한 요거트 웅덩이(느려지고 계속 피해)' },
-    kani: { name: '카니와 모몽가', short: '카니·모몽가', arts: ['kani', 'h_momonga'], col: '#f08fa0', cd: () => 20, dur: 7, desc: '카니는 옆걸음으로 붙어 집게로 싹둑(보스 먼저) · 모몽가는 활공해 급강하 · 그동안 이동 속도 +25%' },
+    sumo: { name: '섬아저씨', short: '섬아저씨', arts: ['sumo'], col: '#e0a830', cd: () => T.SUMO_CD, desc: '하늘에서 쿵! 큰 피해로 날려 보내고 4초 동안 손바닥 밀치기 · 보스는 잠깐 기절' },
+    ode: { name: '오데와 외계인', short: '오데', arts: ['ode', 'thrower'], col: '#f2c14e', cd: () => T.ALLY_CD, desc: '6초 동안 오데는 눈빛 광선, 외계인은 뛰어올라 몽둥이 쾅' },
+    pajama: { name: '파자마 파티스', short: '파자마', arts: ['pj_green', 'pj_purple', 'pj_pink', 'pj_white'], col: '#c49af0', cd: () => 30, dur: 6, desc: '6초 동안 둘레에서 춤춰요 · 노래 음표가 적을 쫓고, 춤에 홀린 적은 느려져요 · 마지막에 피날레 쾅' },
+    kuri: { name: '쿠리만쥬와 시사', short: '쿠리·시사', arts: ['kuri', 'shisa'], col: '#e89a5a', cd: () => 30, dur: 5, desc: '쿠리만쥬가 음료를 나눠 체력 조금 회복(약 14), 시사는 만쥬를 던져 펑 터뜨려요' },
+    armor: { name: '갑옷씨들', short: '갑옷씨들', arts: ['armor_silver', 'armor_bronze', 'armor_gold'], col: '#9aa3ad', cd: () => 30, dur: 7, desc: '은갑옷은 방패로 탄을 막고 받는 피해 -40% · 동갑옷은 돌진 베기 · 금갑옷은 땅 내려찍기' },
+    yogurt: { name: '꿀맛맨', short: '꿀맛맨', arts: ['yogurt'], col: '#7cc6d8', cd: () => 30, dur: 6, desc: '하늘을 날며 요거트를 쏴요 · 떨어진 곳에 끈적한 요거트 웅덩이(느려지고 계속 피해)' },
+    kani: { name: '카니와 모몽가', short: '카니·모몽가', arts: ['kani', 'h_momonga'], col: '#f08fa0', cd: () => 30, dur: 6, desc: '카니는 옆걸음으로 붙어 집게로 싹둑(보스 먼저) · 모몽가는 활공해 급강하 · 그동안 이동 속도 +25%' },
   };
   const SLOT_KEYS = ['Q', 'E', 'R'], SLOT_PAD = ['Y', 'X', 'LB'];
   const hState = (id) => id === 'sumo' ? G.sumo : id === 'ode' ? G.ally : G.hx[id];
@@ -876,7 +877,7 @@
     S.m = H.arts.map((_, k) => ({ x: P.x + Math.cos(k * TAU / H.arts.length) * 60, y: P.y + Math.sin(k * TAU / H.arts.length) * 40, cd: 0.3 + k * 0.15, hop: 0 }));
     S.m.forEach((m) => { puff(m.x, m.y - 16, 30, '#ffffff'); burst(m.x, m.y - 16, H.col, 10); });
     fx({ k: 'ring', x: P.x, y: P.y - 16, r: 110, col: H.col, w: 8, life: 0.5 });
-    if (id === 'kuri') heal(10);
+    if (id === 'kuri') heal(5); /* 11-24 너프: 10 → 5 */
     if (id === 'kani') P.inv = Math.max(P.inv, 1.2); // 모몽가 활공으로 휙! 잠깐 무적
     banner(H.name + ' 출동!'); Snd.play('cheer'); addTrauma(0.2);
   }
@@ -906,7 +907,7 @@
     o.forEach((c, i) => {
       const H = HELPERS[c.k], b = document.createElement('button');
       b.className = 'card k-friend'; b.style.animationDelay = i * 40 + 'ms';
-      b.innerHTML = `<span class="kind">${SLOT_KEYS[G.slots.length]} 스킬</span><div class="ic hic">${H.arts.map((a) => `<img src="art/${ART_FILES[a]}" alt="">`).join('')}</div><div class="nm">${H.name}</div><div class="ds">${H.desc}</div><div class="k">다시 부르기 ${H.cd()}초</div>`;
+      b.innerHTML = `<span class="kind">${SLOT_KEYS[G.slots.length]} 스킬</span><div class="ic hic">${H.arts.map((a) => `<img src="art/${ART_FILES[a]}${VQ}" alt="">`).join('')}</div><div class="nm">${H.name}</div><div class="ds">${H.desc}</div><div class="k">다시 부르기 ${H.cd()}초</div>`;
       b.addEventListener('click', () => pickCard(i));
       list.appendChild(b);
     });
@@ -936,7 +937,7 @@
         const [ku, si] = S.m;
         ku.x += (P.x - 46 - ku.x) * k; ku.y += (P.y - 8 - ku.y) * k; si.x += (P.x + 46 - si.x) * k; si.y += (P.y - 8 - si.y) * k;
         S.tick -= dt;
-        if (S.tick <= 0) { S.tick = 1.5; heal(6); fx({ k: 'ring', x: P.x, y: P.y - 16, r: 40, col: '#ffe0a0', w: 4, life: 0.4 }); burst(ku.x + 14, ku.y - 40, '#8fd0ff', 5); }
+        if (S.tick <= 0) { S.tick = 2; heal(3); /* 11-24 너프: 1.5초마다 6 → 2초마다 3 */ fx({ k: 'ring', x: P.x, y: P.y - 16, r: 40, col: '#ffe0a0', w: 4, life: 0.4 }); burst(ku.x + 14, ku.y - 40, '#8fd0ff', 5); }
         si.cd -= dt;
         if (si.cd <= 0) { const c = nearestN(si.x, si.y, 420, 4), t = c[Math.floor(G.rng() * c.length)]; si.cd = t ? 0.7 : 0.2; if (t) G.hshots.push({ k: 'bun', x: si.x, y: si.y - 30, x0: si.x, y0: si.y - 30, x1: t.x, y1: t.y, q: 0, dur: 0.55, dmg: 34, r: 72, col: '#e8a860' }); }
       } else if (id === 'armor') {
@@ -2345,15 +2346,14 @@
       if (G.herbs.length < 2) {
         const a = G.rng() * TAU, d = 220 + G.rng() * 160;
         G.herbs.push({ x: P.x + Math.cos(a) * d, y: P.y + Math.sin(a) * d, prog: 0, life: 40, ph: 0 });
-        if (!seen.herb) toast('약초가 생겼어요! 초록 화살표를 따라가서 옆에 멈춰 서요', 5000);
+        if (!seen.herb) toast('약초가 생겼어요! 초록 화살표를 따라가서 밟아요', 5000);
       }
     }
     for (const h of G.herbs) {
       h.life -= dt; h.ph += dt;
       const close = Math.hypot(P.x - h.x, P.y - h.y) < 46;
-      if (close && (!P.moving || G.mode === 'extreme')) h.prog += dt / (G.mode === 'extreme' ? 0.5 : T.HERB_TIME * CHARS[G.char].herbMul);
+      if (close) h.prog += dt / (0.5 * CHARS[G.char].herbMul); /* 11-24: 모든 모드에서 밟으면 바로 (익스트림처럼) */
       else h.prog = Math.max(0, h.prog - dt * 0.4);
-      if (close && P.moving && !seen.herb && !h.told) { h.told = true; toast('멈춰 서 있으면 약초를 캐요', 2500); }
       if (h.prog >= 1) { h.life = 0; heal(Math.round(T.HERB_HEAL * D().herb)); puff(h.x, h.y - 10, 50, '#ffffff'); addTrauma(0.15); markSeen('herb'); }
     }
     G.herbs = G.herbs.filter((h) => h.life > 0);
@@ -2617,7 +2617,7 @@
       b.className = 'card k-' + kind;
       b.style.animationDelay = i * 50 + 'ms';
       const pips = c.kind === 'heal' ? '' : '<div class="pips">' + [1, 2, 3, 4, 5].map((n) => `<i class="${n < c.l ? 'on' : n === c.l ? 'new' : ''}"></i>`).join('') + '</div>';
-      b.innerHTML = `<span class="kind">${label}</span><div class="ic">${d.img ? `<img src="art/${d.img}" alt="">` : ico(d.ic)}</div><div class="nm">${d.name}</div>${pips}<div class="ds">${d.desc(c.l)}${c.kind === 'w' ? `<br><span class="evo">${ico('sparkle')} ${c.l === 5 ? '진화: ' : 'Lv.5: '}${EVO[c.k]}</span>` : ''}</div>` + (usingTouch ? '' : `<div class="k">${i + 1}</div>`);
+      b.innerHTML = `<span class="kind">${label}</span><div class="ic">${d.img ? `<img src="art/${d.img}${VQ}" alt="">` : ico(d.ic)}</div><div class="nm">${d.name}</div>${pips}<div class="ds">${d.desc(c.l)}${c.kind === 'w' ? `<br><span class="evo">${ico('sparkle')} ${c.l === 5 ? '진화: ' : 'Lv.5: '}${EVO[c.k]}</span>` : ''}</div>` + (usingTouch ? '' : `<div class="k">${i + 1}</div>`);
       b.addEventListener('click', () => pickCard(i));
       list.appendChild(b);
     });
@@ -2682,7 +2682,7 @@
     document.querySelectorAll('#result .unlock, #result .meet').forEach((el) => el.remove());
     if (met.length) {
       $('resStat').insertAdjacentHTML('afterend', '<div class="meet">' + met.map((c, i) =>
-        `<div class="meetcard" style="animation-delay:${0.4 + i * 0.25}s"><span class="new">새 동료!</span><img src="art/${c.img}" alt=""><div class="nm">${escapeHtml(c.name)}</div></div>`).join('') + '</div>');
+        `<div class="meetcard" style="animation-delay:${0.4 + i * 0.25}s"><span class="new">새 동료!</span><img src="art/${c.img}${VQ}" alt=""><div class="nm">${escapeHtml(c.name)}</div></div>`).join('') + '</div>');
       setTimeout(() => Snd.play('card'), 400);
     } else if (COMP.length && dexCount() < COMP.length && s.correct < RULE.minCorrect) {
       $('resStat').insertAdjacentHTML('afterend', `<p class="unlock" style="color:var(--soft)">문제를 ${RULE.minCorrect}개 이상 맞히면 동료를 만날 수 있어요 (이번 판 ${s.correct}개)</p>`);
@@ -3382,7 +3382,7 @@
     ctx.font = fs(14); outText(`${Math.max(0, Math.ceil(P.hp))} / ${P.max}` + (G.char === 'chiikawa' && P.hp <= P.max * 0.4 ? '  버티기!' : ''), bx + 22, y0 + 15);
     if (G.vamp || G.car.t > 0) {
       // 흡혈 · 자동차 표시 (체력 막대 오른쪽)
-      const tags = []; if (G.vamp) tags.push(['흡혈 ' + (helperOn() ? '2%' : '1%'), '#c0392b']); if (G.car.t > 0) tags.push([VEH[G.char].name + ' ' + Math.ceil(G.car.t), '#2f7fc0']);
+      const tags = []; if (G.vamp) tags.push(['흡혈 ' + (helperOn() ? '0.2%' : '0.1%'), '#c0392b']); if (G.car.t > 0) tags.push([VEH[G.char].name + ' ' + Math.ceil(G.car.t), '#2f7fc0']);
       let tx = bx + bw + 8; ctx.font = fs(13);
       for (const [txt, col] of tags) { const w = ctx.measureText(txt).width + 14; rrect(tx, y0 + 5, w, 20, 10); ctx.fillStyle = col; ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(txt, tx + 7, y0 + 15); tx += w + 6; }
     }
@@ -3488,8 +3488,8 @@
     const d = dexGet();
     $('dexCount').textContent = `${dexCount()} / ${COMP.length}`;
     $('dexGrid').innerHTML = COMP.map((c, i) => d[c.id]
-      ? `<div class="dexcell"><img src="art/${c.img}" alt=""><div>${escapeHtml(c.name)}</div><div class="d">${d[c.id].date}</div></div>`
-      : `<div class="dexcell no"><img src="art/${c.img}" alt=""><div>No.${i + 1} ???</div></div>`).join('');
+      ? `<div class="dexcell"><img src="art/${c.img}${VQ}" alt=""><div>${escapeHtml(c.name)}</div><div class="d">${d[c.id].date}</div></div>`
+      : `<div class="dexcell no"><img src="art/${c.img}${VQ}" alt=""><div>No.${i + 1} ???</div></div>`).join('');
   }
   function josaIGa(w) { const c = w.charCodeAt(w.length - 1) - 0xac00; return c >= 0 && c < 11172 && c % 28 ? '이' : '가'; }
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
@@ -3513,7 +3513,7 @@
       if (!open) { c.globalCompositeOperation = 'source-atop'; c.fillStyle = '#6b5c55'; c.fillRect(0, 0, 64, 64); }
       b.appendChild(cvs);
       b.insertAdjacentHTML('beforeend', open
-        ? `<div class="info"><div class="nm">${C.name}</div><div class="wp">${ico(W.ic)}${W.name}${WEAP['rod_' + k] ? ` · <img src="art/${WEAP['rod_' + k].img}" alt="">토벌봉` : ''}${C.speed > 1.1 ? ' · 빠름' : ''}</div><div class="ds"><b>${C.passive}</b> ${C.pdesc}${C.bonus ? (hardBonus() ? `<br><span class="bon"><b>${C.bonus.name}</b> 체력 ${C.bonus.hp} · ${C.bonus.desc}</span>` : `<br><span class="bon off">${ico('lock')} 하드를 깨면 체력 ${C.bonus.hp} · ${C.bonus.name}</span>`) : ''}</div><div class="best">최고 기록 ${best[k] || 0}마리</div></div>`
+        ? `<div class="info"><div class="nm">${C.name}</div><div class="wp">${ico(W.ic)}${W.name}${WEAP['rod_' + k] ? ` · <img src="art/${WEAP['rod_' + k].img}${VQ}" alt="">토벌봉` : ''}${C.speed > 1.1 ? ' · 빠름' : ''}</div><div class="ds"><b>${C.passive}</b> ${C.pdesc}${C.bonus ? (hardBonus() ? `<br><span class="bon"><b>${C.bonus.name}</b> 체력 ${C.bonus.hp} · ${C.bonus.desc}</span>` : `<br><span class="bon off">${ico('lock')} 하드를 깨면 체력 ${C.bonus.hp} · ${C.bonus.name}</span>`) : ''}</div><div class="best">최고 기록 ${best[k] || 0}마리</div></div>`
         : `<div class="info"><div class="nm">${ico('lock')}???</div><div class="ds">마지막 보스를 쓰러뜨리면 함께해요</div></div>`);
       b.addEventListener('click', () => {
         Snd.unlock();
@@ -3644,7 +3644,7 @@
     $('shopTk').textContent = d.tk; $('shopProg').textContent = `(지금 ${d.ok}/5)`; $('mathProg').textContent = `· 지금 ${d.ok}/5`; $('mathTk').textContent = d.tk; $('shopDraw').disabled = d.tk < 1;
     $('shopGrid').innerHTML = Object.keys(SHOP_NAMES).map((c) => `<div class="shop-row"><h3>${CHARS[c].name}</h3>` + SHOP.filter((s) => s.c === c).map((s) => {
       const n = d.own[s.id] || 0;
-      return `<button class="sk k${s.r}${n ? '' : ' no'}${d.eq[c] === s.id ? ' on' : ''}" data-sk="${s.id}" title="${RAR_NM[s.r]} ${RAR_P[s.r]}% · ${s.n}"><img src="art/${ART_FILES[s.id]}" alt="">${n ? escapeHtml(s.n) : '???'}<small class="r${s.r}">${RAR_NM[s.r]} ${RAR_P[s.r]}%</small>${n > 1 ? `<em>×${n}</em>` : ''}</button>`;
+      return `<button class="sk k${s.r}${n ? '' : ' no'}${d.eq[c] === s.id ? ' on' : ''}" data-sk="${s.id}" title="${RAR_NM[s.r]} ${RAR_P[s.r]}% · ${s.n}"><img src="art/${ART_FILES[s.id]}${VQ}" alt="">${n ? escapeHtml(s.n) : '???'}<small class="r${s.r}">${RAR_NM[s.r]} ${RAR_P[s.r]}%</small>${n > 1 ? `<em>×${n}</em>` : ''}</button>`;
     }).join('') + '</div>').join('');
   }
   function shopAnswer() {
@@ -3682,7 +3682,7 @@
     for (const o of SHOP) { x -= RAR_P[o.r]; if (x < 0) { s = o; break; } }
     const r = s.r;
     d.tk--; const dup = !!d.own[s.id]; d.own[s.id] = (d.own[s.id] || 0) + 1; store.set(K_SHOP, d);
-    $('shopRes').innerHTML = `<img src="art/${ART_FILES[s.id]}" alt=""><div class="r${r}"><b>${RAR_NM[r]} ${RAR_P[r]}%</b> · ${CHARS[s.c].name} ${escapeHtml(s.n)}${dup ? ' (또 나왔어요!)' : ' NEW!'}</div>`;
+    $('shopRes').innerHTML = `<img src="art/${ART_FILES[s.id]}${VQ}" alt=""><div class="r${r}"><b>${RAR_NM[r]} ${RAR_P[r]}%</b> · ${CHARS[s.c].name} ${escapeHtml(s.n)}${dup ? ' (또 나왔어요!)' : ' NEW!'}</div>`;
     Snd.play(r >= 2 ? 'cheer' : 'card'); renderShop();
   }
   $('shopBtn').addEventListener('click', () => { renderShop(); $('shopRes').innerHTML = ''; show('shop'); });
