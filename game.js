@@ -69,7 +69,7 @@
 
     // 새 몬스터 13종 (생김새에 맞는 기술 하나씩)
     yamanba: { r: 16, hp: 40, spd: 50, dmg: 8, xp: 3 },   // 산할머니: 사라졌다가 바로 옆에 나타나 지팡이로 쾅
-    snake: { r: 15, hp: 36, spd: 46, dmg: 7, xp: 3 },     // 하얀 돌뱀: 똬리를 틀고(!) 돌 눈빛 → 맞으면 분홍 돌이 되어 잠깐 못 움직여요
+    snake: { r: 15, hp: 60, spd: 54, dmg: 8, xp: 4 },     // 11-24 강화: 체력 36 → 60, 속도 46 → 54     // 하얀 돌뱀: 똬리를 틀고(!) 돌 눈빛 → 맞으면 분홍 돌이 되어 잠깐 못 움직여요
     centipede: { r: 12, hp: 26, spd: 70, dmg: 6, xp: 2 }, // 분홍 지네: 꾸물꾸물 다가오다 다다닥 질주
     fugu: { r: 16, hp: 40, spd: 40, dmg: 7, xp: 3 },      // 복어: 부풀었다가(!) 가시 8방향 발사
     chushi: { r: 15, hp: 30, spd: 58, dmg: 6, xp: 2 },    // '중지입니다': "중지!" 외치면 둘레 원 안에서 느려져요
@@ -85,18 +85,17 @@
   };
   const ELEFT = { imomushi: 1, midori: 1, midori_s: 1 }; // 왼쪽을 보는 그림 (오른쪽으로 갈 때 뒤집어요)
   // 언제부터 나오는지(초)와 나오는 비율. after: 보스를 몇 마리 쓰러뜨린 뒤부터. 동료가 된 몬스터(ally)는 5:00 보스 뒤엔 안 나와요.
+  // 11-24: 지네·생크림·하얀 애벌레·피망·연두색·순록·복어는 뺐어요 (기술 코드는 남겨 둠). 기본(슬라임·토끼)과 꿀벌 떼 말고는 모두 같은 비율(w 1)로 나와요.
   const SPAWN = [
-    { t: 'slime', from: 0, w: 5 }, { t: 'hopper', from: 20, w: 3 }, { t: 'swoop', from: 60, w: 1.5, cap: 6 },
-    { t: 'big', from: 90, w: 1.2 }, { t: 'burrow', from: 110, w: 1.5, cap: 5 },
-    { t: 'thrower', from: 150, w: 1.2, cap: 4, ally: true, after: 1 }, { t: 'stag', from: 150, w: 1.3, cap: 4, after: 1 },
+    { t: 'slime', from: 0, w: 5 }, { t: 'hopper', from: 20, w: 3 }, { t: 'swoop', from: 60, w: 1, cap: 6 },
+    { t: 'big', from: 90, w: 1 }, { t: 'burrow', from: 110, w: 1, cap: 5 },
+    { t: 'thrower', from: 150, w: 1, cap: 4, ally: true, after: 1 }, { t: 'stag', from: 150, w: 1, cap: 4, after: 1 },
     { t: 'mace', from: 190, w: 1, cap: 2, after: 1 }, { t: 'spitter', from: 210, w: 1, cap: 3, ally: true, after: 1 },
-    { t: 'grab', from: 240, w: 1, cap: 3, after: 1 }, { t: 'charger', from: 300, w: 1.5, cap: 5, after: 2 },
+    { t: 'grab', from: 240, w: 1, cap: 3, after: 1 }, { t: 'charger', from: 300, w: 1, cap: 5, after: 2 },
     { t: 'bee', from: 45, w: 2.2, cap: 14, only: 'extreme' }, { t: 'pinkele', from: 170, w: 1, cap: 3, after: 1, only: 'extreme' },
-    { t: 'centipede', nw: 1, from: 40, w: 1.2, cap: 5 }, { t: 'soy', nw: 1, from: 80, w: 1, cap: 4 }, { t: 'chushi', nw: 1, from: 100, w: 0.8, cap: 3 },
-    { t: 'fugu', nw: 1, from: 130, w: 0.9, cap: 3 }, { t: 'imomushi', nw: 1, from: 160, w: 0.9, cap: 3, after: 1 }, { t: 'snake', nw: 1, from: 170, w: 0.9, cap: 3, after: 1 },
-    { t: 'cream', nw: 1, from: 200, w: 0.8, cap: 3, after: 1 }, { t: 'piman', nw: 1, from: 220, w: 0.9, cap: 3, after: 1 }, { t: 'pinkbug', nw: 1, from: 250, w: 0.9, cap: 3, after: 1 },
-    { t: 'yamanba', nw: 1, from: 320, w: 0.8, cap: 2, after: 2 }, { t: 'antlion', nw: 1, from: 330, w: 0.6, cap: 2, after: 2 }, { t: 'midori', nw: 1, from: 360, w: 0.6, cap: 2, after: 2 },
-    { t: 'tonakai', nw: 1, from: 400, w: 0.8, cap: 3, after: 2 },
+    { t: 'soy', nw: 1, from: 80, w: 1, cap: 4 }, { t: 'chushi', nw: 1, from: 100, w: 1, cap: 3 },
+    { t: 'snake', nw: 1, from: 170, w: 1, cap: 4, after: 1 }, { t: 'pinkbug', nw: 1, from: 250, w: 1, cap: 3, after: 1 },
+    { t: 'yamanba', nw: 1, from: 320, w: 1, cap: 2, after: 2 }, { t: 'antlion', nw: 1, from: 330, w: 1, cap: 2, after: 2 },
   ];
   // 판 중간중간 몰려오는 사건 (지루한 틈이 없게)
   const EVENTS = [
@@ -110,9 +109,9 @@
     { at: 380, k: 'herd', t: 'mace', n: 5, msg: '쇠공 토끼들이 굴러와요!' },
     { at: 420, k: 'ring', t: 'grab', n: 10, msg: '긴팔이 사방에서 뻗어와요!' },
     { at: 520, k: 'ring', t: 'charger', n: 10, msg: '사자탈에게 포위됐어요!' },
-    { at: 160, k: 'herd', t: 'centipede', n: 10, msg: '분홍 지네 떼가 다다닥!', skip: 'normal' },
+    { at: 160, k: 'herd', t: 'mix', n: 10, msg: '몬스터 무리가 몰려와요!', skip: 'normal' }, // 지네 떼 자리: 지금 나오는 몬스터를 골고루
     { at: 340, k: 'ring', t: 'snake', n: 7, msg: '하얀 돌뱀이 노려봐요! 돌 눈빛을 피해요', skip: 'normal' },
-    { at: 470, k: 'herd', t: 'tonakai', n: 5, msg: '크리스마스 순록 썰매대!', skip: 'normal' },
+    { at: 470, k: 'herd', t: 'mix', n: 12, msg: '몬스터 무리가 몰려와요!', skip: 'normal' }, // 순록 썰매대 자리
   ];
   EVENTS.sort((a, b) => a.at - b.at);
   // 지역: 보스를 쓰러뜨리면 다음 지역으로 (바닥·소품·보스 울타리 모양이 바뀌어요)
@@ -644,7 +643,7 @@
       const a = G.rng() * TAU;
       for (let i = 0; i < Math.round(ev.n * D().ev); i++) {
         const b = a + (G.rng() - 0.5) * 0.7, R = viewR() * (0.9 + G.rng() * 0.25);
-        spawnEnemy(ev.t, { x: P.x + Math.cos(b) * R, y: P.y + Math.sin(b) * R });
+        spawnEnemy(ev.t === 'mix' ? pickType() : ev.t, { x: P.x + Math.cos(b) * R, y: P.y + Math.sin(b) * R });
       }
     }
     banner(ev.msg); Snd.play('warn'); addTrauma(0.25);
@@ -1113,7 +1112,7 @@
       G.evIdx++;
       if ((EV.only && EV.only !== G.mode) || EV.skip === G.mode) { /* 다른 모드 사건 */ } else {
       const need = (SPAWN.find((s) => s.t === EV.t) || {}).after || 0;
-      if (G.bossesBeaten >= need && !(QA_NONEW && ['centipede', 'snake', 'tonakai'].includes(EV.t))) runEvent(EV);
+      if (G.bossesBeaten >= need && !(QA_NONEW && EV.t === 'snake')) runEvent(EV);
       }
     }
     // 지역: 보스를 쓰러뜨릴 때마다 다음 지역, 대습격부터 별밤
@@ -1639,8 +1638,9 @@
         else { chase(e.spd); if (e.cd <= 0 && d < 380) { e.st = 'gone'; e.stT = 0.9; e.hide = true; e.inv = true; puff(e.x, e.y - 14, 34, '#ffffff'); } }
       } else if (e.type === 'snake') {
         // 하얀 돌뱀: 똬리를 틀고(!) → 돌 눈빛 줄. 맞으면 분홍 돌이 되어 1.3초 못 움직여요
-        if (e.st === 'aim') { if (e.stT <= 0) { e.st = 'move'; e.cd = 4.8; } }
-        else { const k = d > 240 ? 1 : d < 150 ? -0.6 : 0; if (k) chase(e.spd * k); if (e.cd <= 0 && d < 360) { e.st = 'aim'; e.stT = 0.95; const w = lineAt(e.x, e.y - 20, Math.atan2(dy, dx), 420, 30, 0.9, 6, '#ff8fc8'); w.stun = 1.3; Snd.play('warn'); } }
+        // 11-24 강화: 3갈래 부채꼴 눈빛 · 더 자주(4.8 → 3.2초) · 경고 더 짧게(0.9 → 0.7초) · 돌 1.3 → 1.6초
+        if (e.st === 'aim') { if (e.stT <= 0) { e.st = 'move'; e.cd = 3.2; } }
+        else { const k = d > 240 ? 1 : d < 150 ? -0.6 : 0; if (k) chase(e.spd * k); if (e.cd <= 0 && d < 380) { e.st = 'aim'; e.stT = 0.75; const a0 = Math.atan2(dy, dx); for (const da of [-0.32, 0, 0.32]) { const w = lineAt(e.x, e.y - 20, a0 + da, 440, 30, 0.7, 7, '#ff8fc8'); w.stun = 1.6; } Snd.play('warn'); } }
       } else if (e.type === 'centipede') {
         // 분홍 지네: 꾸물꾸물 다가오다 가까우면 다다닥 질주 (0.6초)
         if (e.st === 'run') { e.x += e.dx * 260 * sf * dt; e.y += e.dy * 260 * sf * dt; if (e.stT <= 0) { e.st = 'move'; e.cd = 2.8; } }
