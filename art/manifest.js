@@ -31,10 +31,10 @@ window.ART_FILES = {
   momonga: 'enemies/momonga.png',     // 데카츠요의 본체 · 매지컬 모몽가 (흑마법)
   bee: 'enemies/bee.png',             // 익스트림 몬스터 · 꿀벌 (침 돌진)
   pinkele: 'enemies/pinkele.png',     // 익스트림 몬스터 · 분홍 코끼리 (물폭탄)
-  // 새 몬스터 (선생님 몬스터 모음집 16~30, 이미 있는 가위바위보·줄무늬 벌레는 빼고 13종)
-  yamanba: 'enemies/yamanba.png', snake: 'enemies/snake.png', centipede: 'enemies/centipede.png', fugu: 'enemies/fugu.png',
-  chushi: 'enemies/chushi.png', cream: 'enemies/cream.png', antlion: 'enemies/antlion.png', piman: 'enemies/piman.png',
-  soy: 'enemies/soy.png', imomushi: 'enemies/imomushi.png', midori: 'enemies/midori.png', pinkbug: 'enemies/pinkbug.png', tonakai: 'enemies/tonakai.png',
+  // 새 몬스터 (선생님 몬스터 모음집 16~30, 이미 있는 가위바위보·줄무늬 벌레는 빼고 13종 → 11-24에 7종 빼서 6종)
+  // 11-24: 지네·생크림·하얀 애벌레·피망·연두색·순록·복어는 게임에서 뺐어요 (그림 파일은 남겨 둠)
+  yamanba: 'enemies/yamanba.png', snake: 'enemies/snake.png', chushi: 'enemies/chushi.png', antlion: 'enemies/antlion.png',
+  soy: 'enemies/soy.png', pinkbug: 'enemies/pinkbug.png',
   ode: 'allies/ode.png',          // E 스킬 동료 오데 (노랑 외눈이)
   sumo: 'allies/sumo.png',         // 세이렌을 쓰러뜨리면 합류하는 섬아저씨 (Q 스킬)
   // 보스를 쓰러뜨리면 고르는 도와줄 친구 (Q·E·R)
