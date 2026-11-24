@@ -138,5 +138,35 @@ for (let seed = 1; seed <= 200; seed++) {
   ok(s.byTag.A.n === 2 && s.byTag.A.c === 1 && s.wrong.length === 1 && s.reaskN === 1 && s.reaskCorrect === 1, '유형별·재출제 요약');
 }
 
+// 그림 파일: 목록에 적힌 그림과 상점 스킨 30장이 모두 있어야 해요 (없으면 게임에서 조용히 안 보여요)
+{
+  const w = {}; require('vm').runInNewContext(fs.readFileSync(__dirname + '/art/manifest.js', 'utf8'), { window: w });
+  for (const [k, f] of Object.entries(w.ART_FILES)) ok(fs.existsSync(__dirname + '/art/' + f), '그림 파일 있음: ' + k);
+  for (const c of ['chiikawa', 'hachiware', 'usagi']) for (let i = 1; i <= 20; i++) ok(fs.existsSync(`${__dirname}/art/skins/${c}_${String(i).padStart(2, '0')}.png`), `상점 스킨 ${c} ${i}`);
+  const g = fs.readFileSync(__dirname + '/game.js', 'utf8');
+  // 가챠: 스킨 60종의 등급 확률(3·2·1·0.5%)을 더하면 정확히 100%
+  const rp = JSON.parse(g.match(/const RAR_P = (\[[^\]]*\])/)[1]);
+  const tiers = [...g.slice(g.indexOf('const SHOP_NAMES'), g.indexOf('const SHOP = []')).matchAll(/\['[^']+', (\d)\]/g)].map((m) => +m[1]);
+  ok(tiers.length === 60, '상점 스킨 60종 (캐릭터마다 20)');
+  ok(Math.abs(tiers.reduce((a, r) => a + rp[r], 0) - 100) < 1e-9, '가챠 확률 합 100%');
+  ok([3, 2, 1, 0.5].every((p) => rp.includes(p)), '등급 확률 3% · 2% · 1% · 0.5%');
+  // 수학 문제: 엑셀 360문제, 곱셈 문제는 정답을 다시 계산해 맞춰 봐요
+  const mw = {}; require('vm').runInNewContext(fs.readFileSync(__dirname + '/mathq.js', 'utf8'), { window: mw });
+  ok(mw.MATH_QUESTIONS.length === 360, '수학 문제 360개');
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  const fr = (n, d = 1) => { const k = gcd(Math.abs(n), d); return [n / k, d / k]; };
+  const mul = (a, b) => fr(a[0] * b[0], a[1] * b[1]);
+  const parse = (t) => { let m; if ((m = t.match(/^\(대분수 (\d+)[과와] (\d+)\/(\d+)\)$/))) return fr(+m[1] * +m[3] + +m[2], +m[3]); if ((m = t.match(/^(\d+)\/(\d+)$/))) return fr(+m[1], +m[2]); if (/^\d+\.\d+$/.test(t)) { const k = 10 ** t.split('.')[1].length; return fr(Math.round(+t * k), k); } return fr(+t, 1); };
+  let nChk = 0, nBad = 0;
+  for (const [, q, a] of mw.MATH_QUESTIONS) {
+    ok(/^\d+(\.\d+|\/\d+)?$/.test(a), '수학 정답 모양 (자연수·소수·분수): ' + a);
+    const m = q.match(/^다음 곱을 계산하세요: (.+?) × (.+?) \(/); if (!m) continue;
+    const r = mul(parse(m[1]), parse(m[2])), ans = parse(a); nChk++;
+    if (r[0] !== ans[0] || r[1] !== ans[1] || (a.includes('/') && +a.split('/')[1] !== ans[1])) { nBad++; console.log('✗ 수학 정답', q, a); }
+  }
+  ok(nChk === 168 && nBad === 0, '곱셈 168문제 정답 다시 계산');
+  for (const t of ['yamanba', 'snake', 'centipede', 'fugu', 'chushi', 'cream', 'antlion', 'piman', 'soy', 'imomushi', 'midori', 'pinkbug', 'tonakai']) ok(g.includes(`e.type === '${t}'`) || g.includes(`'${t}'`) && new RegExp(`${t}: \\{ r:`).test(g), '새 몬스터 기술·능력치: ' + t);
+}
+
 console.log(`통과 ${pass} · 실패 ${fail}`);
 process.exit(fail ? 1 : 0);

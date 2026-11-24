@@ -7,6 +7,7 @@
   const ctx = cv.getContext('2d');
   const TAU = Math.PI * 2;
   const QA = /[?&]qa=1/.test(location.search);
+  const QA_NONEW = QA && /[?&]nonew=1/.test(location.search); // QA 비교용: 새 몬스터 끄기
   const isTouchDev = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   // ---------- 저장 ----------
@@ -64,7 +65,24 @@
     mermaid: { r: 17, hp: 160, spd: 72, dmg: 12, xp: 5 }, // 세이렌의 인어 2마리 (하드: 물줄기·물방울)
     bee: { r: 10, hp: 10, spd: 95, dmg: 5, xp: 1 },      // 익스트림 · 꿀벌: 떼로 날아와 멈칫(!) 뒤 침 돌진
     pinkele: { r: 18, hp: 50, spd: 44, dmg: 9, xp: 3 },  // 익스트림 · 분홍 코끼리: 거리를 두고 코로 물폭탄 3개 (떨어질 곳에 원)
+
+    // 새 몬스터 13종 (생김새에 맞는 기술 하나씩)
+    yamanba: { r: 16, hp: 40, spd: 50, dmg: 8, xp: 3 },   // 산할머니: 사라졌다가 바로 옆에 나타나 지팡이로 쾅
+    snake: { r: 15, hp: 36, spd: 46, dmg: 7, xp: 3 },     // 하얀 돌뱀: 똬리를 틀고(!) 돌 눈빛 → 맞으면 분홍 돌이 되어 잠깐 못 움직여요
+    centipede: { r: 12, hp: 26, spd: 70, dmg: 6, xp: 2 }, // 분홍 지네: 꾸물꾸물 다가오다 다다닥 질주
+    fugu: { r: 16, hp: 40, spd: 40, dmg: 7, xp: 3 },      // 복어: 부풀었다가(!) 가시 8방향 발사
+    chushi: { r: 15, hp: 30, spd: 58, dmg: 6, xp: 2 },    // '중지입니다': "중지!" 외치면 둘레 원 안에서 느려져요
+    cream: { r: 18, hp: 50, spd: 38, dmg: 7, xp: 3 },     // 생크림: 크림 3덩이를 던져요 (밟으면 미끌미끌 느려짐)
+    antlion: { r: 20, hp: 70, spd: 24, dmg: 9, xp: 4 },   // 개미귀신: 모래 구덩이로 빨아들여요
+    piman: { r: 17, hp: 45, spd: 52, dmg: 8, xp: 3 },     // 피망 괴물: 펄쩍 뛰어올라 플레이어 자리에 덮치기
+    soy: { r: 13, hp: 24, spd: 62, dmg: 5, xp: 2 },       // 간장 액체: 지나간 자리에 간장 웅덩이 (밟으면 따끔)
+    imomushi: { r: 16, hp: 55, spd: 30, dmg: 8, xp: 3 },  // 하얀 애벌레: 몸을 말아 데굴데굴 굴러와요
+    midori: { r: 24, hp: 110, spd: 38, dmg: 10, xp: 5 },  // 연두색 대형 괴물: 쓰러지면 작은 연두 2마리로 갈라져요
+    midori_s: { r: 12, hp: 22, spd: 85, dmg: 5, xp: 1 },
+    pinkbug: { r: 13, hp: 26, spd: 60, dmg: 6, xp: 2 },   // 분홍 세발 벌레: 세 발로 삼각형 알 폭탄
+    tonakai: { r: 20, hp: 70, spd: 50, dmg: 10, xp: 4 },  // 크리스마스 순록: 뿔 돌진 뒤 선물 상자가 펑
   };
+  const ELEFT = { imomushi: 1, midori: 1, midori_s: 1 }; // 왼쪽을 보는 그림 (오른쪽으로 갈 때 뒤집어요)
   // 언제부터 나오는지(초)와 나오는 비율. after: 보스를 몇 마리 쓰러뜨린 뒤부터. 동료가 된 몬스터(ally)는 5:00 보스 뒤엔 안 나와요.
   const SPAWN = [
     { t: 'slime', from: 0, w: 5 }, { t: 'hopper', from: 20, w: 3 }, { t: 'swoop', from: 60, w: 1.5, cap: 6 },
@@ -73,6 +91,11 @@
     { t: 'mace', from: 190, w: 1, cap: 2, after: 1 }, { t: 'spitter', from: 210, w: 1, cap: 3, ally: true, after: 1 },
     { t: 'grab', from: 240, w: 1, cap: 3, after: 1 }, { t: 'charger', from: 300, w: 1.5, cap: 5, after: 2 },
     { t: 'bee', from: 45, w: 2.2, cap: 14, only: 'extreme' }, { t: 'pinkele', from: 170, w: 1, cap: 3, after: 1, only: 'extreme' },
+    { t: 'centipede', nw: 1, from: 40, w: 1.2, cap: 5 }, { t: 'soy', nw: 1, from: 80, w: 1, cap: 4 }, { t: 'chushi', nw: 1, from: 100, w: 0.8, cap: 3 },
+    { t: 'fugu', nw: 1, from: 130, w: 0.9, cap: 3 }, { t: 'imomushi', nw: 1, from: 160, w: 0.9, cap: 3, after: 1 }, { t: 'snake', nw: 1, from: 170, w: 0.9, cap: 3, after: 1 },
+    { t: 'cream', nw: 1, from: 200, w: 0.8, cap: 3, after: 1 }, { t: 'piman', nw: 1, from: 220, w: 0.9, cap: 3, after: 1 }, { t: 'pinkbug', nw: 1, from: 250, w: 0.9, cap: 3, after: 1 },
+    { t: 'yamanba', nw: 1, from: 320, w: 0.8, cap: 2, after: 2 }, { t: 'antlion', nw: 1, from: 330, w: 0.6, cap: 2, after: 2 }, { t: 'midori', nw: 1, from: 360, w: 0.6, cap: 2, after: 2 },
+    { t: 'tonakai', nw: 1, from: 400, w: 0.8, cap: 3, after: 2 },
   ];
   // 판 중간중간 몰려오는 사건 (지루한 틈이 없게)
   const EVENTS = [
@@ -86,7 +109,11 @@
     { at: 380, k: 'herd', t: 'mace', n: 5, msg: '쇠공 토끼들이 굴러와요!' },
     { at: 420, k: 'ring', t: 'grab', n: 10, msg: '긴팔이 사방에서 뻗어와요!' },
     { at: 520, k: 'ring', t: 'charger', n: 10, msg: '사자탈에게 포위됐어요!' },
+    { at: 160, k: 'herd', t: 'centipede', n: 10, msg: '분홍 지네 떼가 다다닥!', skip: 'normal' },
+    { at: 340, k: 'ring', t: 'snake', n: 7, msg: '하얀 돌뱀이 노려봐요! 돌 눈빛을 피해요', skip: 'normal' },
+    { at: 470, k: 'herd', t: 'tonakai', n: 5, msg: '크리스마스 순록 썰매대!', skip: 'normal' },
   ];
+  EVENTS.sort((a, b) => a.at - b.at);
   // 지역: 보스를 쓰러뜨리면 다음 지역으로 (바닥·소품·보스 울타리 모양이 바뀌어요)
   const BIOMES = [
     { name: '풀밭', ground: '#cfe8b8', grass: '#b3d69a', dots: ['#fff', '#ffd1dc', '#ffe58a'], props: ['bush', 'flower', 'rock'], fence: '#8fc27a', shadow: 'rgba(60,80,40,.25)' },
@@ -133,7 +160,7 @@
     rod_chiikawa: { only: 'chiikawa', img: 'rods/chiikawa.png', name: '분홍 토벌봉', ic: 'heart', desc: (l) => `던지면 적과 적 사이를 튕겨 다녀요 · 피해 ${20 + 5 * (l - 1)} · ${2 + Math.floor(l / 2)}번 튕김` },
     rod_hachiware: { only: 'hachiware', img: 'rods/hachiware.png', name: '파랑 토벌봉', ic: 'heart', desc: (l) => `부채꼴로 ${l >= 5 ? 5 : l >= 3 ? 4 : 3}개를 던져 꿰뚫어요 · 피해 ${14 + 4 * (l - 1)}` },
     rod_usagi: { only: 'usagi', img: 'rods/usagi.png', name: '노랑 토벌봉', ic: 'heart', desc: (l) => `높이 던져 적 무리 위에 쿵! 내리꽂아요 · 피해 ${35 + 10 * (l - 1)}` },
-    rod_rakko: { only: 'rakko', img: 'items/rakko_sword.png', name: '해달의 칼', ic: 'sword', desc: (l) => `칼을 빙글빙글 던져 모두 베고 돌아와요 · 피해 ${40 + 12 * (l - 1)}${l >= 3 ? ' · 2자루' : ''}` },
+    rod_rakko: { only: 'rakko', img: 'items/rakko_sword.png', name: '해달의 칼', ic: 'sword', desc: (l) => `칼을 빙글빙글 던져 모두 베고 돌아와요 · 피해 ${30 + 8 * (l - 1)}${l >= 3 ? ' · 2자루' : ''}` },
     mine: { name: '꽃폭탄', ic: 'mine', desc: (l) => `발밑에 꽃을 심어요. 적이 밟으면 펑! · 피해 ${28 + 8 * (l - 1)}` },
     // 캐릭터 전용 물건 (카드로 얻어요)
     it_naruto: { only: 'chiikawa', img: 'items/naruto.png', name: '나루토 원반', ic: 'heart', desc: (l) => `몸 주위를 ${l >= 5 ? 4 : l >= 3 ? 3 : 2}개가 빙글빙글 돌며 베어요 · 피해 ${10 + 3 * (l - 1)}` },
@@ -147,7 +174,7 @@
     sword: '검기가 날아가요', club: '충격파가 퍼져요', zap: '맞은 적이 감전돼 느려져요',
     boom: '불꽃 숟가락! 더 크고 불꽃이 남아요', mine: '터질 때 꽃잎 폭탄이 4개 더 터져요',
     rod_chiikawa: '6번 튕기고, 맞을 때마다 작게 터져요', rod_hachiware: '5개를 던지고 끝까지 꿰뚫어요', rod_usagi: '2개를 던지고 떨어진 곳에 충격파가 퍼져요',
-    rod_rakko: '3자루를 던지고, 돌아올 때 검기 고리가 퍼져요',
+    rod_rakko: '돌아올 때 검기 고리가 퍼져요',
     it_naruto: '원반이 크게 펼쳐졌다 돌아와요', it_tempura: '튕길 때마다 작게 터져요', it_rocket: '터질 때 작은 로켓 3개가 더 날아가요', top: '다 돌면 크게 펑!',
   };
   const SUBS = {
@@ -159,10 +186,10 @@
   // 캐릭터: 무기와 움직임만 달라요. 체력·문제·카드 보상은 모두 같아요.
   const CHARS = {
     // bonus: 하드를 한 번 깨면 영구로 받는 강화 (기본 체력 + 캐릭터 특수 효과)
-    chiikawa: { name: '치이카와', weapon: 'sickle', speed: 1, herbMul: 1, passive: '버티기', pdesc: '체력 30% 이하일 때 몬스터 피해 −30%', bonus: { hp: 125, name: '울보 각성', desc: '체력 30% 이하면 주는 피해 +40%' } },
-    hachiware: { name: '하치와레', weapon: 'sling', speed: 1, herbMul: 1, passive: '응원', pdesc: '3번 연속 정답마다 3초 무적 + 주변 밀어내기', bonus: { hp: 125, name: '긍정 에너지', desc: '1초에 체력 0.6씩 저절로 회복' } },
-    usagi: { name: '우사기', weapon: 'club', speed: 1.2, herbMul: 0.5, passive: '우라!', pdesc: '빠르게 달리고 약초를 2배 빨리 캐요', bonus: { hp: 125, name: '우라 연타', desc: '공격의 15%가 2배 피해 (치명타)' } },
-    rakko: { name: '랏코', weapon: 'sword', speed: 1.1, herbMul: 1, hp: 140, passive: '토벌 고수', pdesc: '체력 140 · 모든 피해 +20% · 보스에게 +30% 더 · 해달의 칼', locked: true },
+    chiikawa: { name: '치이카와', weapon: 'sickle', speed: 1, herbMul: 1, passive: '버티기', pdesc: '체력 40% 이하일 때 몬스터 피해 −30%', bonus: { hp: 135, name: '울보 각성', desc: '체력 40% 이하면 주는 피해 +40%' } }, // 11-24 버프: 30% → 40%, 체력 125 → 135
+    hachiware: { name: '하치와레', weapon: 'sling', speed: 1, herbMul: 1, passive: '응원', pdesc: '3번 연속 정답마다 3초 무적 + 주변 밀어내기', bonus: { hp: 125, name: '긍정 에너지', desc: '1초에 체력 0.4씩 저절로 회복' } }, // 11-24 너프: 회복 0.6 → 0.4
+    usagi: { name: '우사기', weapon: 'club', speed: 1.2, herbMul: 0.5, passive: '우라!', pdesc: '빠르게 달리고 약초를 2배 빨리 캐요', bonus: { hp: 140, name: '우라 연타', desc: '공격의 25%가 2배 피해 (치명타)' } }, // 11-24 버프: 치명타 15% → 25%, 체력 125 → 140
+    rakko: { name: '랏코', weapon: 'sword', speed: 1.1, herbMul: 1, hp: 125, passive: '토벌 고수', pdesc: '체력 125 · 모든 피해 +10% · 보스에게 +10% 더 · 해달의 칼', locked: true }, // 2026-11-24 너프 (140 · +20% · 보스 +30%)
   };
   let testOn = false; // 테스트 모드 (비밀번호로 켜요 · 이 창을 닫으면 꺼져요)
   const isUnlocked = (k) => testOn || !CHARS[k].locked || !!store.get('chii_unlock_' + k, false);
@@ -315,6 +342,19 @@
   const ART_FILES = Object.assign({}, window.ART_FILES);
   const SKINS = window.ART_SKINS || {};
   for (const k in SKINS) SKINS[k].forEach((id) => { ART_FILES['skin_' + id] = 'heroes/' + id + '.png'; });
+  // 스킨 상점: 캐릭터마다 원작 복장 20종. 스킨 하나가 나올 확률 = 등급 확률 (일반 3% · 고급 2% · 희귀 1% · 전설 0.5%)
+  // 등급 개수 10 · 26 · 12 · 12 → 10×3 + 26×2 + 12×1 + 12×0.5 = 100%
+  const RAR_P = [3, 2, 1, 0.5], RAR_NM = ['일반', '고급', '희귀', '전설'];
+  const SHOP_NAMES = { // [이름, 등급 0~3]
+    chiikawa: [['분홍 곰 귀 잠옷', 0], ['초록 잎 너구리', 1], ['빨간 문어 옷', 1], ['초록 좀비', 2], ['검은 고양이', 2], ['혼시메지 버섯', 1], ['간호사', 1], ['빨간 크리스마스 요정', 3], ['호박조림 무늬 옷', 3], ['개구리 우비', 0],
+      ['콩 탈', 1], ['게 집게 머리띠', 1], ['멜론 포장망 모자', 1], ['도토리 모자', 0], ['분홍 곰 파우치', 1], ['줄무늬 죄수복', 2], ['크리스마스 트리', 3], ['분홍 부활절 달걀', 3], ['여주 열매 옷', 1], ['삶은 달걀 후드', 2]],
+    hachiware: [['하늘색 고양이 귀 잠옷', 0], ['은행잎 너구리', 1], ['빨간 문어 옷', 1], ['초록 좀비', 2], ['검은 고양이', 2], ['새송이버섯', 1], ['간호사', 1], ['초록 크리스마스 요정', 3], ['호박튀김 무늬 옷', 3], ['달팽이 우비', 0],
+      ['편의점 유니폼', 2], ['고깃집 종이 앞치마', 1], ['냉탕 머리 수건', 1], ['게 집게 머리띠', 1], ['초미니 허리 가방', 0], ['꿈속 꽃 요정', 3], ['난토카 바니아 인형', 3], ['눈사람 옷', 2], ['하늘색 빙수 옷', 1], ['분홍 카메라', 1]],
+    usagi: [['노란 토끼 귀 잠옷', 0], ['단풍잎 너구리', 1], ['하얀 오징어 옷', 1], ['초록 좀비', 2], ['검은 고양이', 2], ['표고버섯', 1], ['수술복', 1], ['하얀 크리스마스 요정', 3], ['생호박 무늬 옷', 3], ['테루테루보즈 우비', 0],
+      ['보라 발톱', 3], ['니트 모자·안경', 1], ['그릇 헬멧', 0], ['칠석 날개옷', 3], ['부활절 달걀', 2], ['점화기', 1], ['권투', 1], ['땅콩 껍질', 1], ['액세서리 상인', 2], ['알로하', 0]],
+  };
+  const SHOP = [];
+  for (const c in SHOP_NAMES) SHOP_NAMES[c].forEach(([n, r], i) => { const f = c + '_' + String(i + 1).padStart(2, '0'); ART_FILES['sk_' + f] = 'skins/' + f + '.png'; SHOP.push({ id: 'sk_' + f, c, n, r }); });
   const ART = {};
   Object.keys(ART_FILES).forEach((k) => {
     const im = new Image();
@@ -498,12 +538,12 @@
       seed, rng,
       t: 0, clock: 0,
       player: { x: 0, y: 0, px: 0, py: 0, r: 14, hp: charHp(selChar), max: charHp(selChar), inv: 0, fx: 1, fy: 0, moving: false, hurtT: 0 },
-      hpGhost: charHp(selChar), ghostHold: 0, car: { ok: selMode === 'extreme' && !!VEH[selChar], cd: 0, t: 0 }, vamp: false, bonus: hardBonus() && !!CHARS[selChar].bonus, sumo: { ok: false, cd: 0, t: 0, x: 0, y: 0, drop: 0, tick: 0 }, slots: [], hx: {}, pickN: 0, pickAt: 0, hshots: [], puddles: [],
+      hpGhost: charHp(selChar), ghostHold: 0, car: { ok: selMode === 'extreme' && !!VEH[selChar], cd: 0, t: 0 }, vamp: false, bonus: hardBonus() && !!CHARS[selChar].bonus, sumo: { ok: false, cd: 0, t: 0, x: 0, y: 0, drop: 0, tick: 0 }, slots: [], hx: {}, pickN: 0, pickAt: 0, hshots: [], puddles: [], epud: [],
       mode: selMode, char: selChar, weapons: Object.assign({ [CHARS[selChar].weapon]: 1 }, WEAP['rod_' + selChar] ? { ['rod_' + selChar]: 1 } : {}), subs: {},
       wcd: { sickle: 0.4, sling: 0.3, bubble: 0, club: 0.6, sword: 0.5, zap: 0, boom: 0, mine: 0, rod_chiikawa: 0.8, rod_hachiware: 0.8, rod_usagi: 1, rod_rakko: 0.6, it_naruto: 0, it_tempura: 0, it_rocket: 0, top: 0 }, slash: null, rods: [],
       eshots: [], warns: [], fx: [], booms: [], mines: [], waves: [], whirl: null, items: [], tops: [], orbA: 0,
       arena: null, biome: 0, biomeT: 0, evIdx: 0, pull: null, grabs: [],
-      bossIdx: 0, bossesBeaten: 0, rushDone: false, winT: 0, skin: null,
+      bossIdx: 0, bossesBeaten: 0, rushDone: false, winT: 0, skin: (store.get('chii_shop_v1', {}).eq || {})[selChar] || null,
       ally: { ok: false, cd: 0, t: 0, a: [{ x: 0, y: 0, cd: 0 }, { x: 0, y: 0, cd: 0, jump: null }] },
       dash: null, stomp: null, pendingCheer: false, cheerT: 0,
       level: 1, xp: 0, need: needXp(1),
@@ -568,9 +608,10 @@
   function pickType() {
     const alive = {};
     for (const e of G.enemies) alive[e.type] = (alive[e.type] || 0) + 1;
-    const list = SPAWN.filter((o) => !(o.only && o.only !== G.mode) && G.clock >= o.from && G.bossesBeaten >= (o.after || 0) && !(o.ally && G.ally.ok) && !(o.cap && alive[o.t] >= o.cap));
-    let r = G.rng() * list.reduce((a, o) => a + o.w, 0);
-    for (const o of list) { r -= o.w; if (r <= 0) return o.t; }
+    const list = SPAWN.filter((o) => !(QA_NONEW && o.nw) && !(o.only && o.only !== G.mode) && G.clock >= o.from && G.bossesBeaten >= (o.after || 0) && !(o.ally && G.ally.ok) && !(o.cap && alive[o.t] >= o.cap));
+    const wOf = (o) => o.w * (o.nw && G.mode === 'normal' ? 0.25 : 1); // 새 몬스터는 노말에서 1/4만 (봇: 끄면 6/16승, 절반이면 1/16승)
+    let r = G.rng() * list.reduce((a, o) => a + wOf(o), 0);
+    for (const o of list) { r -= wOf(o); if (r <= 0) return o.t; }
     return 'slime';
   }
   function spawnBoss(B) {
@@ -622,14 +663,14 @@
   // 고리 경고: 안쪽 반지름(rin) 바깥, 울타리까지 모두 위험 (가운데로 피해요)
   function donutAt(x, y, rin, rout, dur, dmg, col) { G.warns.push({ x, y, r: rout, rin, dur, dmg, t: 0, col }); }
   // 줄 경고: (x,y)에서 a 방향으로 len 길이, 폭 w
-  function lineAt(x, y, a, len, w, dur, dmg, col) { G.warns.push({ x, y, a, len, w, dur, dmg, t: 0, col, line: true, r: len }); }
+  function lineAt(x, y, a, len, w, dur, dmg, col) { const o = { x, y, a, len, w, dur, dmg, t: 0, col, line: true, r: len }; G.warns.push(o); return o; }
   // 화려한 효과 한 줄 (고리 · 번개 · 광선 · 번쩍)
   function fx(o) { if (G.fx.length > 120) G.fx.shift(); o.t = 0; G.fx.push(o); }
   function eshot(x, y, a, v, o) {
     if (G.eshots.length > 220) return;
     G.eshots.push(Object.assign({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 7, dmg: 7, life: 4, rot: 0, k: 'orb', col: '#b07cff' }, o));
   }
-  function warnAt(x, y, r, dur, dmg, col) { G.warns.push({ x, y, r, dur, dmg, t: 0, col: col || '#e8746c' }); }
+  function warnAt(x, y, r, dur, dmg, col) { const o = { x, y, r, dur, dmg, t: 0, col: col || '#e8746c' }; G.warns.push(o); return o; }
   function dropGem(x, y, v) {
     if (G.gems.length > 350) { G.xp += v; return; }
     G.gems.push({ x, y, px: x, py: y, v, pull: false });
@@ -660,11 +701,11 @@
   function hurtEnemy(e, dmg, fx, fy, kb) {
     if (e.dead || e.under || e.air || e.inv) return;
     if (e.type === 'boss' && e.st === 'stun') dmg *= 2;
-    if (G.char === 'rakko') dmg *= e.type === 'boss' ? 1.2 * 1.3 : 1.2; // 랏코 특성 '토벌 고수'
+    if (G.char === 'rakko') dmg *= e.type === 'boss' ? 1.1 * 1.1 : 1.1; // 랏코 특성 '토벌 고수' (11-24 너프: 1.2 · 보스 ×1.3)
     let crit = false;
     if (G.bonus) {
-      if (G.char === 'chiikawa' && G.player.hp <= G.player.max * 0.3) dmg *= 1.4; // 울보 각성
-      else if (G.char === 'usagi' && G.rng() < 0.15) { dmg *= 2; crit = true; } // 우라 연타
+      if (G.char === 'chiikawa' && G.player.hp <= G.player.max * 0.4) dmg *= 1.4; // 울보 각성
+      else if (G.char === 'usagi' && G.rng() < 0.25) { dmg *= 2; crit = true; } // 우라 연타
     }
     e.hp -= dmg; e.flash = 0.08; e.sq = 1;
     if (G.vamp) { const P = G.player, k = helperOn() ? 0.02 : 0.01; P.hp = Math.min(P.max, P.hp + dmg * k); if (G.hpGhost < P.hp) G.hpGhost = P.hp; } // 흡혈 (친구 스킬 쓰는 동안 2배, 겹치지 않아요)
@@ -680,6 +721,7 @@
       Snd.play('kill');
       if (e.type === 'boss') bossDefeated(e);
       else {
+        if (e.type === 'midori') for (let i = -1; i <= 1; i += 2) { const m = spawnEnemy('midori_s', { x: e.x + i * 16, y: e.y }); m.art = 'midori'; m.kx = i * 180; }
         if (e.type === 'slime' && !e.small && G.bossesBeaten >= 1) for (let i = -1; i <= 1; i += 2) { const m = spawnEnemy('slime', { x: e.x + i * 12, y: e.y }); m.small = true; m.r = 8; m.hp = m.max = m.max * 0.4; m.xp = 0; m.kx = i * 160; }
         burst(e.x, e.y, colorOf(e), e.type === 'big' ? 10 : 5); puff(e.x, e.y - e.r * 0.8, e.r * 1.6, '#ffffff'); dropGem(e.x, e.y, e.xp); G.killBump = 1; }
     }
@@ -735,6 +777,7 @@
   }
   // 보스를 쓰러뜨릴 때마다 닮은 친구 외형으로 (무작위)
   function changeSkin() {
+    if (G.skin && G.skin.startsWith('sk_')) return; // 상점에서 입은 스킨은 그대로
     const pool = (SKINS[G.char] || []).map((id) => 'skin_' + id).filter((k) => k !== G.skin);
     if (!pool.length) return;
     G.skin = pool[Math.floor(G.rng() * pool.length)];
@@ -1012,7 +1055,7 @@
   function hurtPlayer(dmg, src) {
     const P = G.player;
     if (G.qaInv || P.inv > 0) return;
-    const m = G.char === 'chiikawa' && P.hp <= P.max * 0.3 ? 0.7 : 1; // 치이카와 특성 '버티기'
+    const m = G.char === 'chiikawa' && P.hp <= P.max * 0.4 ? 0.7 : 1; // 치이카와 특성 '버티기'
     dmg *= D().dmg * (G.car.t > 0 ? 0.8 : 1) * (G.hx.armor && G.hx.armor.t > 0 ? 0.6 : 1) * (G.boss && G.boss.rage ? 1.25 : 1); // 자동차·자전거 방어 +20% · 은갑옷 방패 -40% · 레이지 세이렌 +25%
     P.hp -= dmg * m; P.inv = 0.6;
     const by = src ? (src.type || src.k || 'warn') : '?'; G.dmgBy[by] = (G.dmgBy[by] || 0) + Math.round(dmg * m); // 밸런스 확인용 P.hurtT = 0.2; G.ghostHold = 0.3;
@@ -1033,7 +1076,7 @@
     G.healGlow = 1;
     Snd.play('heal');
   }
-  const ECOL = { fluff: '#f0e6da', slime: '#b5d67a', hopper: '#f6b3c4', big: '#ffd84a', swoop: '#ffffff', burrow: '#a0704a', thrower: '#9ccf6e', spitter: '#ffd84a', charger: '#e8574c', clone: '#5a4a6a', stag: '#b5384f', mace: '#f6b8d0', grab: '#f6c9a8', mermaid: '#ff8a80', bee: '#ffd84a', pinkele: '#ffc4d4' };
+  const ECOL = { fluff: '#f0e6da', slime: '#b5d67a', hopper: '#f6b3c4', big: '#ffd84a', swoop: '#ffffff', burrow: '#a0704a', thrower: '#9ccf6e', spitter: '#ffd84a', charger: '#e8574c', clone: '#5a4a6a', stag: '#b5384f', mace: '#f6b8d0', grab: '#f6c9a8', mermaid: '#ff8a80', bee: '#ffd84a', pinkele: '#ffc4d4', yamanba: '#8a9a6a', snake: '#ffffff', centipede: '#e89a9a', fugu: '#6a9ad0', chushi: '#ffe066', cream: '#fff4c8', antlion: '#6a7080', piman: '#ffe066', soy: '#f4c890', imomushi: '#ffffff', midori: '#e8f8d8', midori_s: '#e8f8d8', pinkbug: '#f0b8e0', tonakai: '#a08060' };
   const colorOf = (e) => ECOL[e.type] || '#ff8a8a';
 
   // ---------- 한 단계 (1/60초) ----------
@@ -1067,9 +1110,9 @@
     const EV = EVENTS[G.evIdx];
     if (EV && !G.boss && G.clock >= EV.at) {
       G.evIdx++;
-      if (EV.only && EV.only !== G.mode) { /* 다른 모드 사건 */ } else {
+      if ((EV.only && EV.only !== G.mode) || EV.skip === G.mode) { /* 다른 모드 사건 */ } else {
       const need = (SPAWN.find((s) => s.t === EV.t) || {}).after || 0;
-      if (G.bossesBeaten >= need) runEvent(EV);
+      if (G.bossesBeaten >= need && !(QA_NONEW && ['centipede', 'snake', 'tonakai'].includes(EV.t))) runEvent(EV);
       }
     }
     // 지역: 보스를 쓰러뜨릴 때마다 다음 지역, 대습격부터 별밤
@@ -1092,12 +1135,13 @@
       const m = Math.min(len / joy.R, 1);
       if (m > 0.15) { const s = (m - 0.15) / 0.85; mx = (dx / len) * s; my = (dy / len) * s; }
     }
+    if (G.botMv) { mx = G.botMv.x; my = G.botMv.y; } // QA 밸런스 봇 전용 (?qa=1)
     if (G.curse > 0) { G.curse -= dt; mx = -mx; my = -my; } // 모몽가의 거꾸로 저주
     if (G.dark > 0) G.dark -= dt;
     const ml = Math.hypot(mx, my);
     P.moving = ml > 0.02;
     if (P.moving) { P.fx = mx / ml; P.fy = my / ml; if (!seen.move) { markSeen('move'); hideToast(); } }
-    const slowK = G.pull ? 0.45 : 1;
+    const slowK = (G.pull ? 0.45 : 1) * (P.stunT > 0 ? 0 : P.slowT > 0 ? 0.55 : 1); // 돌뱀 돌 눈빛 = 못 움직임 · 크림/중지 = 느려짐
     P.x += mx * spd() * slowK * dt; P.y += my * spd() * slowK * dt;
     // 긴팔·세이렌 노래에 붙잡히면 끌려가요
     if (G.pull) {
@@ -1113,7 +1157,7 @@
       const A = G.arena, dx = P.x - A.x, dy = P.y - A.y, d = Math.hypot(dx, dy) || 1, lim = A.r - P.r - 4;
       if (d > lim) { P.x = A.x + dx / d * lim; P.y = A.y + dy / d * lim; if (Math.random() < 0.15) burst(P.x, P.y - 6, BIOMES[G.biome].fence, 2); }
     }
-    P.inv -= dt; P.hurtT -= dt;
+    P.inv -= dt; P.hurtT -= dt; P.stunT = (P.stunT || 0) - dt; P.slowT = (P.slowT || 0) - dt;
     if (P.hp < G.hpGhost) { G.ghostHold -= dt; if (G.ghostHold <= 0) G.hpGhost = Math.max(P.hp, G.hpGhost - 60 * dt); } else G.hpGhost = P.hp;
 
     // 몬스터 생성
@@ -1139,7 +1183,7 @@
     updAlly(dt);
     updSumo(dt); updCar(dt);
     updHelpers(dt); if (state !== 'play') return;
-    if (G.bonus && G.char === 'hachiware' && P.hp > 0) P.hp = Math.min(P.max, P.hp + 0.6 * dt); // 긍정 에너지
+    if (G.bonus && G.char === 'hachiware' && P.hp > 0) P.hp = Math.min(P.max, P.hp + 0.4 * dt); // 긍정 에너지
     updFx(dt);
     G.enemies = G.enemies.filter((e) => !e.dead);
     updGems(dt);
@@ -1395,8 +1439,8 @@
     if (k === 'rod_rakko') {
       // 해달의 칼: 빙글빙글 날아가 모두 베고 돌아와요 (돌아올 때도 베요)
       G.wcd[k] = 1.6 - 0.1 * (l - 1);
-      const n = l >= 5 ? 3 : l >= 3 ? 2 : 1;
-      for (let i = 0; i < n; i++) { const b = a + (i - (n - 1) / 2) * 0.5; G.rods.push({ k, x: P.x, y: P.y - 14, vx: Math.cos(b) * 620, vy: Math.sin(b) * 620, rot: 0, t: 0, back: false, hit: new Set(), dmg: 40 + 12 * (l - 1), ring: l >= 5 }); }
+      const n = l >= 3 ? 2 : 1; // 11-24 너프: 5레벨 3자루 → 2자루, 피해 40+12 → 30+8
+      for (let i = 0; i < n; i++) { const b = a + (i - (n - 1) / 2) * 0.5; G.rods.push({ k, x: P.x, y: P.y - 14, vx: Math.cos(b) * 620, vy: Math.sin(b) * 620, rot: 0, t: 0, back: false, hit: new Set(), dmg: 30 + 8 * (l - 1), ring: l >= 5 }); }
     } else if (k === 'rod_chiikawa') {
       // 분홍: 맞으면 가까운 다른 적에게 튕겨요
       G.wcd[k] = 1.8 - 0.12 * (l - 1);
@@ -1587,6 +1631,53 @@
           if (k) chase(e.spd * k);
           if (e.cd <= 0 && d < 300) { e.st = 'aim'; e.stT = 0.65; e.dx = dx / d; e.dy = dy / d; }
         }
+      } else if (e.type === 'yamanba') {
+        // 산할머니: 연기 속으로 사라졌다가(!) 플레이어 옆에 나타나 지팡이로 쾅
+        if (e.st === 'gone') { if (e.stT <= 0) { const a = G.rng() * TAU; e.x = P.x + Math.cos(a) * 90; e.y = P.y + Math.sin(a) * 90; e.hide = false; e.inv = false; e.st = 'wind'; e.stT = 0.7; warnAt(e.x, e.y, 75, 0.7, 10, '#7a8a5a'); puff(e.x, e.y - 14, 34, '#ffffff'); } }
+        else if (e.st === 'wind') { if (e.stT <= 0) { e.st = 'move'; e.cd = 4.5; e.sq = 1; } }
+        else { chase(e.spd); if (e.cd <= 0 && d < 380) { e.st = 'gone'; e.stT = 0.9; e.hide = true; e.inv = true; puff(e.x, e.y - 14, 34, '#ffffff'); } }
+      } else if (e.type === 'snake') {
+        // 하얀 돌뱀: 똬리를 틀고(!) → 돌 눈빛 줄. 맞으면 분홍 돌이 되어 1.3초 못 움직여요
+        if (e.st === 'aim') { if (e.stT <= 0) { e.st = 'move'; e.cd = 4.8; } }
+        else { const k = d > 240 ? 1 : d < 150 ? -0.6 : 0; if (k) chase(e.spd * k); if (e.cd <= 0 && d < 360) { e.st = 'aim'; e.stT = 0.95; const w = lineAt(e.x, e.y - 20, Math.atan2(dy, dx), 420, 30, 0.9, 6, '#ff8fc8'); w.stun = 1.3; Snd.play('warn'); } }
+      } else if (e.type === 'centipede') {
+        // 분홍 지네: 꾸물꾸물 다가오다 가까우면 다다닥 질주 (0.6초)
+        if (e.st === 'run') { e.x += e.dx * 260 * sf * dt; e.y += e.dy * 260 * sf * dt; if (e.stT <= 0) { e.st = 'move'; e.cd = 2.8; } }
+        else { const w = Math.sin(e.ph * 6) * 0.6, ux = dx / d, uy = dy / d; e.x += (ux - uy * w) * e.spd * sf * dt; e.y += (uy + ux * w) * e.spd * sf * dt; if (e.cd <= 0 && d < 220) { e.st = 'run'; e.stT = 0.6; e.dx = ux; e.dy = uy; } }
+      } else if (e.type === 'fugu') {
+        // 복어: 부풀어 오르면(!) 가시 8개가 사방으로
+        if (e.st === 'wind') { e.sq = 0; if (e.stT <= 0) { e.st = 'move'; e.cd = 4; for (let i = 0; i < 8; i++) eshot(e.x, e.y - 16, i * TAU / 8 + e.ph, 150, { k: 'orb', r: 6, dmg: 6, col: '#5b8ac0' }); Snd.play('bubble', 1.4); } }
+        else { chase(e.spd); if (e.cd <= 0 && d < 260) { e.st = 'wind'; e.stT = 0.8; } }
+      } else if (e.type === 'chushi') {
+        // '중지입니다': "중지!" 외치며 둘레 원(!) → 원 안에 있으면 2초 느려져요
+        if (e.st === 'wind') { if (e.stT <= 0) { e.st = 'move'; e.cd = 5; } }
+        else { chase(e.spd); if (e.cd <= 0 && d < 200) { e.st = 'wind'; e.stT = 0.9; e.say = '중지입니다'; e.sayUntil = G.t + 1.4; const w = warnAt(e.x, e.y, 140, 0.9, 4, '#e8c040'); w.slow = 2; } }
+      } else if (e.type === 'cream') {
+        // 생크림 괴물: 크림 3덩이를 던져요 (맞으면 미끌미끌 느려짐)
+        if (e.st === 'wind') { if (e.stT <= 0) { e.st = 'move'; e.cd = 4.2; for (let i = 0; i < 3; i++) { const a = G.rng() * TAU, r = i ? 50 + G.rng() * 60 : 0; const w = warnAt(P.x + Math.cos(a) * r, P.y + Math.sin(a) * r, 42, 1 + i * 0.15, 6, '#f5e6b8'); w.slow = 1.5; } } }
+        else { const k = d > 260 ? 1 : d < 170 ? -0.6 : 0; if (k) chase(e.spd * k); if (e.cd <= 0 && d < 380) { e.st = 'wind'; e.stT = 0.6; } }
+      } else if (e.type === 'antlion') {
+        // 개미귀신: 모래 구덩이(!) → 1.2초 동안 끌려가요
+        chase(e.spd);
+        if (e.cd <= 0 && d < 230 && !G.pull) { e.cd = 5.5; G.pull = { x: e.x, y: e.y, v: 95, t: 1.2, src: e }; fx({ k: 'ring', x: e.x, y: e.y, r: 230, col: '#c9a76a', w: 10, life: 0.6 }); burst(e.x, e.y, '#c9a76a', 12); Snd.play('warn'); }
+      } else if (e.type === 'piman') {
+        // 피망 괴물: 플레이어 자리에 원(!) → 펄쩍 뛰어 덮쳐요
+        if (e.st === 'jump') { const k = 1 - e.stT / 0.8; e.x = e.jx + (e.tx - e.jx) * k; e.y = e.jy + (e.ty - e.jy) * k; e.airH = Math.sin(k * Math.PI) * 120; if (e.stT <= 0) { e.st = 'move'; e.cd = 4; e.air = false; e.airH = 0; e.sq = 1; addTrauma(0.1); } }
+        else { chase(e.spd); if (e.cd <= 0 && d < 300) { e.st = 'jump'; e.stT = 0.8; e.air = true; e.jx = e.x; e.jy = e.y; e.tx = P.x; e.ty = P.y; warnAt(P.x, P.y, 60, 0.8, 10, '#5aa84a'); } }
+      } else if (e.type === 'soy') {
+        // 간장 액체: 지나간 자리에 간장 웅덩이 (4초, 밟으면 따끔)
+        chase(e.spd);
+        if (e.cd <= 0) { e.cd = 0.9; if (G.epud.length < 40) G.epud.push({ x: e.x, y: e.y, r: 26, t: 4 }); }
+      } else if (e.type === 'imomushi' || e.type === 'tonakai') {
+        // 하얀 애벌레: 몸을 말아 데굴데굴 / 순록: 뿔 돌진 뒤 선물 상자가 펑
+        const T2 = e.type === 'tonakai';
+        if (e.st === 'warn') { if (e.stT <= 0) { e.st = 'charge'; e.stT = T2 ? 0.5 : 0.8; } }
+        else if (e.st === 'charge') { const v = T2 ? 420 : 300; e.x += e.dx * v * dt; e.y += e.dy * v * dt; if (e.stT <= 0) { e.st = 'move'; e.cd = 3.8; if (T2) warnAt(e.x, e.y, 60, 1.2, 9, '#d43c3c'); } }
+        else { chase(e.spd); if (e.cd <= 0 && d < 280) { e.st = 'warn'; e.stT = 0.7; e.dx = dx / d; e.dy = dy / d; e.chg = T2 ? 420 : 300; e.chgT = T2 ? 0.5 : 0.8; Snd.play('warn'); } }
+      } else if (e.type === 'pinkbug') {
+        // 분홍 세발 벌레: 세 발로 플레이어 둘레에 삼각형 알 폭탄
+        chase(e.spd);
+        if (e.cd <= 0 && d < 300) { e.cd = 4.2; const a0 = G.rng() * TAU; for (let i = 0; i < 3; i++) { const a = a0 + i * TAU / 3; warnAt(P.x + Math.cos(a) * 60, P.y + Math.sin(a) * 60, 44, 1.0, 7, '#e89ad8'); } }
       } else if (e.type === 'big' && G.bossesBeaten >= 1) {
         // 1보스 뒤 노랑 갈기: 가까우면 발 구르기 (경고 원)
         chase(e.spd);
@@ -2101,10 +2192,16 @@
           burst(w.x, w.y, w.col, 8); addTrauma(0.1);
           hit = (P.x - w.x) ** 2 + (P.y - w.y) ** 2 < (w.r + P.r) ** 2;
         }
+        if (hit && !(P.inv > 0) && !G.qaInv) {
+          if (w.stun) { P.stunT = w.stun; addNum(P.x, P.y - 56, '돌이 됐어요!', '#ff6fb5', 18); burst(P.x, P.y - 16, '#ff9ad0', 14); }
+          if (w.slow) { P.slowT = w.slow; addNum(P.x, P.y - 56, '느려졌어요', '#e0b030', 16); }
+        }
         if (hit && w.dmg > 0) { hurtPlayer(w.dmg, w); if (state !== 'play') return; }
       }
     }
     G.warns = G.warns.filter((w) => !w.done);
+    for (const u of G.epud) { u.t -= dt; if ((P.x - u.x) ** 2 + ((P.y - u.y) * 1.6) ** 2 < (u.r + P.r) ** 2) { hurtPlayer(3, { x: u.x, y: u.y, type: 'soy' }); if (state !== 'play') return; } }
+    G.epud = G.epud.filter((u) => u.t > 0);
   }
   // 동료 소환: 노랑 외눈이는 눈빛 광선, 초록 도깨비는 뛰어올라 몽둥이 쾅
   function updAlly(dt) {
@@ -2717,6 +2814,7 @@
       ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x + s * 0.7, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s * 0.7, y); ctx.closePath(); ctx.fill();
     }
     // 바닥 경고 원 (별똥별 비 · 땅속 몬스터): 안쪽이 차오르면 쾅
+    for (const u of G.epud) { ctx.globalAlpha = Math.min(1, u.t) * 0.7; ctx.fillStyle = '#4a2a1a'; ctx.beginPath(); ctx.ellipse(u.x, u.y, u.r, u.r * 0.6, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; } // 간장 웅덩이
     for (const w of G.warns) {
       const k = Math.min(1, w.t / w.dur), blink = Math.floor(now * 10) % 2;
       if (w.line) {
@@ -2963,6 +3061,10 @@
       return;
     }
     drawChar(ctx, G.char, x, y, t, { skin: G.skin, moving: P.moving || !!G.dash, fx: P.fx, fy: P.fy, hurt: P.hurtT > 0, alpha: blink ? 0.55 : null, low: P.hp <= P.max * 0.3 });
+    if (P.stunT > 0) { // 돌뱀 눈빛: 분홍 돌이 되어 꼼짝 못해요
+      ctx.globalAlpha = 0.55; ctx.fillStyle = '#ff8fc8'; ctx.beginPath(); ctx.ellipse(x, y - 24, 30, 30, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      for (let i = 0; i < 3; i++) { const a = t * 5 + i * TAU / 3; drawIco('star', x + Math.cos(a) * 26 - 9, y - 66 + Math.sin(a) * 6, 18); }
+    }
   }
 
   // 캐릭터 그림 (게임과 선택 화면이 같이 씀)
@@ -3045,7 +3147,7 @@
       if (e.type === 'boss' && e.revived) { ctx.globalAlpha = 0.25 + 0.2 * Math.sin(t * 9); ctx.fillStyle = e.kind === 'star' ? '#ff3b30' : '#7b4fd0'; ctx.beginPath(); ctx.ellipse(x, y - h / 2, w * 0.95, h * 0.8, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; }
       if (e.type === 'boss' && e.final) { ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 6); ctx.fillStyle = e.enr ? '#c0392b' : '#6b4fa0'; ctx.beginPath(); ctx.ellipse(x, y - h / 2, w * 0.7, h * 0.62, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; }
       if (e.type === 'clone') ctx.globalAlpha = 0.72;
-      const flip = e.face < 0 && e.type !== 'boss';
+      const flip = e.type !== 'boss' && (ELEFT[e.art || e.type] ? e.face > 0 : e.face < 0); // 그림이 보는 쪽에 맞춰 뒤집어요
       if (flip) { ctx.save(); ctx.translate(x, 0); ctx.scale(-1, 1); ctx.drawImage(spr, -w / 2, y - h, w, h); ctx.restore(); }
       else ctx.drawImage(spr, x - w / 2, y - h, w, h);
       ctx.globalAlpha = 1;
@@ -3277,7 +3379,7 @@
     }
     const hs = 40 + (low ? Math.sin(t * 8) * 3 : 0) + G.healGlow * 6;
     drawIco('heart', x0 + 4 - (hs - 40) / 2, y0 - 5 - (hs - 40) / 2, hs);
-    ctx.font = fs(14); outText(`${Math.max(0, Math.ceil(P.hp))} / ${P.max}` + (low && G.char === 'chiikawa' ? '  버티기!' : ''), bx + 22, y0 + 15);
+    ctx.font = fs(14); outText(`${Math.max(0, Math.ceil(P.hp))} / ${P.max}` + (G.char === 'chiikawa' && P.hp <= P.max * 0.4 ? '  버티기!' : ''), bx + 22, y0 + 15);
     if (G.vamp || G.car.t > 0) {
       // 흡혈 · 자동차 표시 (체력 막대 오른쪽)
       const tags = []; if (G.vamp) tags.push(['흡혈 ' + (helperOn() ? '2%' : '1%'), '#c0392b']); if (G.car.t > 0) tags.push([VEH[G.char].name + ' ' + Math.ceil(G.car.t), '#2f7fc0']);
@@ -3500,6 +3602,104 @@
   $('legalBtn').addEventListener('click', () => { Snd.play('click'); show('legal'); });
   $('recBtn').addEventListener('click', () => { renderRecords(); show('records'); });
   $('dexBtn').addEventListener('click', () => { renderDex(); show('dex'); });
+  // ---------- 스킨 상점 (관리자 테스트 모드에서만): 수학 5문제 = 가챠권 1장 ----------
+  const K_SHOP = 'chii_shop_v1';
+  const shopGet = () => Object.assign({ tk: 0, ok: 0, own: {}, eq: {} }, store.get(K_SHOP, {}));
+  let shopQ = null;
+  // 수학 문제: 선생님 엑셀 360문제 (mathq.js) · 방금 나온 문제는 30개 동안 다시 안 나와요
+  const MATH_Q = window.MATH_QUESTIONS || [], MATH_UNIT = { '1단원': '1단원 · 수의 범위와 어림하기', '2단원': '2단원 · 분수의 곱셈', '4단원': '4단원 · 소수의 곱셈' };
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  const recentQ = [];
+  function newMath() {
+    let k; do k = Math.floor(Math.random() * MATH_Q.length); while (recentQ.includes(k) && recentQ.length < MATH_Q.length);
+    recentQ.push(k); if (recentQ.length > 30) recentQ.shift();
+    const [u, q, a] = MATH_Q[k], frac = /기약분수/.test(q);
+    shopQ = { q, a, frac };
+    $('shopUnit').textContent = MATH_UNIT[u] || u;
+    $('shopQ').textContent = q.replace(/\s*\((자연수|소수|기약분수)로 입력[^)]*\)/, '');
+    $('shopIn').hidden = frac; $('shopFrac').hidden = !frac; $('fracTip').hidden = !frac;
+    $('shopIn').setAttribute('inputmode', /소수/.test(q) ? 'decimal' : 'numeric');
+    $('shopIn').placeholder = /소수로/.test(q) ? '소수' : '자연수';
+    ['shopIn', 'fW', 'fN', 'fD'].forEach((id) => { $(id).value = ''; $(id).classList.remove('bad'); });
+    (frac ? $('fN') : $('shopIn')).focus();
+  }
+  // 답 확인: 'ok' 정답 · 'reduce' 값은 맞는데 약분이 덜 됨 · 'no' 틀림 · null 빈칸
+  function checkMath(Q) {
+    if (Q.frac) {
+      const w = $('fW').value.trim(), n = $('fN').value.trim(), d = $('fD').value.trim();
+      if (!n || !d) return null;
+      if (!/^\d*$/.test(w) || !/^\d+$/.test(n) || !/^\d+$/.test(d) || +d === 0) return 'no';
+      const [an, ad] = Q.a.includes('/') ? Q.a.split('/').map(Number) : [+Q.a, 1];
+      const W = +w || 0, N = +n, D = +d;
+      if ((W * D + N) * ad !== an * D) return 'no';
+      return gcd(N, D) === 1 && !(W && N >= D) ? 'ok' : 'reduce';
+    }
+    const v = $('shopIn').value.trim().replace(',', '.');
+    if (!v) return null;
+    return /^\d*\.?\d+$/.test(v) && Math.abs(+v - +Q.a) < 1e-9 ? 'ok' : 'no';
+  }
+  const showAns = (a) => { if (!a.includes('/')) return a; const [n, d] = a.split('/').map(Number); return n > d && n % d ? `${a} (= ${Math.floor(n / d)}과 ${n % d}/${d})` : a; };
+  function renderShop() {
+    const d = shopGet();
+    $('shopTk').textContent = d.tk; $('shopProg').textContent = `(지금 ${d.ok}/5)`; $('mathProg').textContent = `· 지금 ${d.ok}/5`; $('mathTk').textContent = d.tk; $('shopDraw').disabled = d.tk < 1;
+    $('shopGrid').innerHTML = Object.keys(SHOP_NAMES).map((c) => `<div class="shop-row"><h3>${CHARS[c].name}</h3>` + SHOP.filter((s) => s.c === c).map((s) => {
+      const n = d.own[s.id] || 0;
+      return `<button class="sk k${s.r}${n ? '' : ' no'}${d.eq[c] === s.id ? ' on' : ''}" data-sk="${s.id}" title="${RAR_NM[s.r]} ${RAR_P[s.r]}% · ${s.n}"><img src="art/${ART_FILES[s.id]}" alt="">${n ? escapeHtml(s.n) : '???'}<small class="r${s.r}">${RAR_NM[s.r]} ${RAR_P[s.r]}%</small>${n > 1 ? `<em>×${n}</em>` : ''}</button>`;
+    }).join('') + '</div>').join('');
+  }
+  function shopAnswer() {
+    if (!shopQ || mathLocked()) return;
+    const res = checkMath(shopQ);
+    if (!res) { $('shopMsg').textContent = '답을 써 주세요'; return; }
+    if (res === 'reduce') { $('shopMsg').textContent = '값은 맞아요! 기약분수가 되도록 약분해서 다시 써 보세요'; ['fN', 'fD'].forEach((id) => $(id).classList.add('bad')); Snd.play('no'); return; }
+    const d = shopGet();
+    if (res === 'ok') {
+      d.ok++; d.wrong = 0; Snd.play('ok');
+      if (d.ok >= 5) { d.ok = 0; d.tk++; $('shopMsg').textContent = '정답! 가챠권 1장을 받았어요'; Snd.play('cheer'); }
+      else $('shopMsg').textContent = `정답! ${5 - d.ok}개 더 맞히면 가챠권`;
+    } else {
+      // 틀리면 가챠권은 절대 없어요. 3번 연속 틀리면 30초 쉬기 (창을 닫거나 새로 고쳐도 이어져요)
+      Snd.play('no'); d.wrong = (d.wrong || 0) + 1;
+      $('shopMsg').textContent = `아쉬워요. 답은 ${showAns(shopQ.a)}` + (d.wrong < 3 ? ` · 연속 오답 ${d.wrong}/3` : '');
+      if (d.wrong >= 3) { d.wrong = 0; d.lockUntil = Date.now() + 30000; }
+    }
+    store.set(K_SHOP, d); renderShop(); newMath(); mathLockTick();
+  }
+  const mathLocked = () => (shopGet().lockUntil || 0) > Date.now();
+  let lockTimer = 0;
+  function mathLockTick() {
+    clearTimeout(lockTimer);
+    const left = Math.ceil(((shopGet().lockUntil || 0) - Date.now()) / 1000), on = left > 0;
+    $('mathLock').hidden = !on; $('mathLockT').textContent = left;
+    ['shopIn', 'fW', 'fN', 'fD', 'shopGo'].forEach((id) => { $(id).disabled = on; });
+    if (on) lockTimer = setTimeout(mathLockTick, 250);
+    else if ($('shopMsg').dataset.locked) { delete $('shopMsg').dataset.locked; $('shopMsg').textContent = '다시 풀 수 있어요!'; (shopQ && shopQ.frac ? $('fN') : $('shopIn')).focus(); }
+    if (on) $('shopMsg').dataset.locked = '1';
+  }
+  function shopDraw() {
+    const d = shopGet(); if (d.tk < 1) return;
+    let x = Math.random() * 100, s = SHOP[SHOP.length - 1]; // 스킨마다 등급 확률(3·2·1·0.5%)만큼
+    for (const o of SHOP) { x -= RAR_P[o.r]; if (x < 0) { s = o; break; } }
+    const r = s.r;
+    d.tk--; const dup = !!d.own[s.id]; d.own[s.id] = (d.own[s.id] || 0) + 1; store.set(K_SHOP, d);
+    $('shopRes').innerHTML = `<img src="art/${ART_FILES[s.id]}" alt=""><div class="r${r}"><b>${RAR_NM[r]} ${RAR_P[r]}%</b> · ${CHARS[s.c].name} ${escapeHtml(s.n)}${dup ? ' (또 나왔어요!)' : ' NEW!'}</div>`;
+    Snd.play(r >= 2 ? 'cheer' : 'card'); renderShop();
+  }
+  $('shopBtn').addEventListener('click', () => { renderShop(); $('shopRes').innerHTML = ''; show('shop'); });
+  $('mathOpen').addEventListener('click', () => { renderShop(); newMath(); $('shopMsg').textContent = '\u00a0'; show('mathPage'); mathLockTick(); });
+  $('mathClose').addEventListener('click', () => { clearTimeout(lockTimer); hide('mathPage'); renderShop(); });
+  $('shopGo').addEventListener('click', shopAnswer);
+  $('shopIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') shopAnswer(); });
+  $('fW').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('fN').focus(); });
+  $('fN').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('fD').focus(); });
+  $('fD').addEventListener('keydown', (e) => { if (e.key === 'Enter') shopAnswer(); });
+  $('shopDraw').addEventListener('click', shopDraw);
+  $('shopGrid').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sk]'); if (!b || b.classList.contains('no')) return;
+    const s = SHOP.find((x) => x.id === b.dataset.sk), d = shopGet();
+    d.eq[s.c] = d.eq[s.c] === s.id ? null : s.id; store.set(K_SHOP, d); renderShop();
+    toast(d.eq[s.c] ? `${CHARS[s.c].name}: ${s.n} 입었어요` : `${CHARS[s.c].name}: 기본 모습`);
+  });
   $('pauseBtn').addEventListener('click', pauseGame);
   $('resumeBtn').addEventListener('click', resumeGame);
   $('quitBtn').addEventListener('click', () => { if (confirm('이번 판을 그만할까요? 기록은 남지 않아요.')) goHome(); });
@@ -3768,7 +3968,7 @@
 
   // 검사용
   window.__chii = {
-    get G() { return G; }, get state() { return state; }, get quiz() { return quiz; }, useAlly, useSlot, addHelper, HELPERS, answer, submitShort, startReview, pickCard, startGame, afterQuiz, T, setChar(k) { selChar = k; },
+    get G() { return G; }, get state() { return state; }, get quiz() { return quiz; }, useAlly, useSlot, useCar, addHelper, HELPERS, answer, submitShort, startReview, pickCard, startGame, afterQuiz, T, setChar(k) { selChar = k; },
     // QA: 화면과 상관없이 n단계 진행 (자동 검사용)
     step(n) { for (let i = 0; i < n && state === 'play'; i++) update(STEP); render(1, 0); },
     qa: { hurtPlayer, feedback, render: (dt) => render(1, dt), hurtEnemy },

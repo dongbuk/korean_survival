@@ -191,6 +191,23 @@ th{color:var(--soft);font-weight:400}
 .pv .pcells span{width:34px;height:38px;border:3px dashed #d6c4b3;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
 .pv .pcells span.gap{border:0;width:10px;background:none}
 .card .ic img{height:52px;width:auto;max-width:96px;object-fit:contain;transform:rotate(-20deg)}
+.shop-top{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}.shop-gobox{flex:2 1 300px}.shop-mathbtn{font-size:24px;padding:14px 28px;margin-top:6px}
+.math-lock{margin:10px 0;padding:12px;border-radius:14px;background:#fde8e6;color:#a03028;font-size:20px;text-align:center}.shop-gacha{flex:1 1 200px;text-align:center}
+.shop-unit{margin:4px 0 0;font-size:14px;color:var(--soft)}.shop-q{font-size:21px;line-height:1.45;margin:2px 0 10px;min-height:2.9em}
+.shop-ans{display:flex;gap:10px;align-items:center}.shop-ans input{font:inherit;font-size:24px;text-align:center;border:3px solid var(--line);border-radius:12px;padding:6px 8px;background:#fff;color:var(--ink)}
+#shopIn{width:150px}.frac-in{display:flex;align-items:center;gap:6px}.frac-in #fW{width:58px;height:58px}
+.fstack{display:flex;flex-direction:column;align-items:center;gap:4px}.fstack input{width:72px;padding:3px 6px}.fstack i{display:block;width:82px;height:4px;border-radius:2px;background:var(--ink)}
+.frac-in[hidden]{display:none}.frac-tip{margin-top:6px}#mathPage{background:#f3ead8}.shop-ans input.bad{border-color:#d9534f}
+.tile.shop-tile{grid-column:1/-1;flex-direction:row;justify-content:center;gap:12px;min-height:84px;font-size:24px;background:#fff3c4;border-color:#e0a820}
+.tile.shop-tile .ico{width:46px;height:46px}.tile.shop-tile em{font-style:normal;font-size:15px;color:var(--soft)}
+.shop-tk{font-size:20px;margin:0 0 6px}.shop-res{min-height:96px;margin-top:8px}.shop-res img{height:80px;image-rendering:pixelated}
+.r0{color:#2a7a38}.r1{color:#2a5fb0}.r2{color:#7a34b0}.r3{color:#8a6200}
+.shop-row{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin:8px 0}.shop-row h3{grid-column:1/-1;margin:4px 0 0;font-size:17px}
+.sk{position:relative;background:#fff;border:3px solid #ddd;border-radius:12px;padding:4px;cursor:pointer;font:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.sk img{height:46px;max-width:100%;object-fit:contain;image-rendering:pixelated}.sk.no img{filter:brightness(0);opacity:.25}.sk.no{cursor:default}
+.sk.k0{border-color:#7cc88a}.sk.k1{border-color:#7aa8ec}.sk.k2{border-color:#c08ae8}.sk.k3{border-color:#e0a820;border-width:4px;background:#fffaf0}.sk.on{outline:4px solid var(--pink)}
+.sk small{font-size:10px;font-weight:700}.sk em{position:absolute;top:2px;right:4px;font-style:normal;font-size:12px}
+@media (max-width:700px){.shop-row{grid-template-columns:repeat(5,1fr)}}
 .dexgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
 @media (max-width:600px){.dexgrid{grid-template-columns:repeat(4,1fr)}}
 .dexcell{background:#fff;border:3px solid var(--line);border-radius:16px;padding:6px 4px;text-align:center;font-size:14px}
@@ -439,6 +456,7 @@ body.big #toast,body.big #banner span{font-size:22px}
       <button class="tile" id="recBtn"><i data-ico="chart"></i><span>기록 보기</span></button>
       <button class="tile" id="setBtn"><i data-ico="gear"></i><span>설정</span></button>
       <button class="tile teacher" id="editBtn"><i data-ico="lock"></i><span>문항 관리</span></button>
+      <button class="tile shop-tile" id="shopBtn"><i data-ico="party"></i><span>스킨 상점</span><em>수학 5문제 = 뽑기 1번</em></button>
     </nav>
     <p class="legal">비상업적 교육용 · 우리 반 수업에서만 사용해요 · 캐릭터 저작권은 원작자 나가노와 권리자에게 있어요 <button class="lnk" id="legalBtn" type="button">저작권 안내</button></p>
   </div>
@@ -656,6 +674,50 @@ body.big #toast,body.big #banner span{font-size:22px}
   </div>
 </div>
 
+<!-- 스킨 상점 (관리자 테스트 모드에서만 열려요) -->
+<div class="ov dim top" id="shop">
+  <div class="panel" style="max-width:900px">
+    <h2 class="ph"><i data-ico="party"></i>스킨 상점 <span class="sub">수학 문제를 풀고 스킨을 모아요</span></h2>
+    <div class="shop-top">
+      <div class="shop-gobox">
+        <p class="sub">수학 문제를 <b>5개</b> 맞힐 때마다 가챠권 1장! <span id="shopProg"></span></p>
+        <button class="btn shop-mathbtn" id="mathOpen"><i data-ico="pencil"></i>문제 풀기</button>
+      </div>
+      <div class="shop-gacha">
+        <p class="shop-tk">가챠권 <b id="shopTk">0</b>장</p>
+        <button class="btn green" id="shopDraw"><i data-ico="sparkle"></i>뽑기 (1장)</button>
+        <div id="shopRes" class="shop-res"></div>
+      </div>
+    </div>
+    <p class="sub shop-rates">스킨 하나가 나올 확률 · <span class="r0">일반 3%</span> · <span class="r1">고급 2%</span> · <span class="r2">희귀 1%</span> · <span class="r3">전설 0.5%</span> (모두 더하면 100%) · 같은 스킨이 또 나올 수 있어요 · 가진 스킨을 누르면 입어요</p>
+    <div id="shopGrid"></div>
+    <div class="row"><button class="btn" data-close="shop" data-focus>닫기</button></div>
+  </div>
+</div>
+
+<!-- 수학 문제 풀기 (스킨 상점에서 여는 따로 화면) -->
+<div class="ov dim top2" id="mathPage">
+  <div class="panel" style="max-width:720px">
+    <h2 class="ph"><i data-ico="pencil"></i>수학 문제 풀기 <span class="sub">가챠권 <b id="mathTk">0</b>장</span></h2>
+        <p class="sub">정답을 <b>5개</b> 맞힐 때마다 가챠권 1장 · 틀리면 안 줘요 · <b>3번 연속 틀리면 30초 쉬어요</b> <span id="mathProg"></span></p>
+        <p class="shop-unit" id="shopUnit"></p>
+        <p class="shop-q" id="shopQ"></p>
+        <div class="shop-ans">
+          <input type="text" id="shopIn" inputmode="decimal" autocomplete="off" aria-label="답">
+          <div class="frac-in" id="shopFrac" hidden>
+            <input type="text" id="fW" inputmode="numeric" autocomplete="off" aria-label="대분수의 자연수 부분 (없으면 비워요)" placeholder="">
+            <div class="fstack"><input type="text" id="fN" inputmode="numeric" autocomplete="off" aria-label="분자"><i></i><input type="text" id="fD" inputmode="numeric" autocomplete="off" aria-label="분모"></div>
+          </div>
+          <button class="btn" id="shopGo">확인</button>
+        </div>
+        <p class="sub frac-tip" id="fracTip" hidden>위 칸 분자 · 아래 칸 분모 · 대분수면 왼쪽 칸에 자연수 (가분수로 써도 돼요)</p>
+        <p class="sub" id="shopMsg">&nbsp;</p>
+      
+    <div class="math-lock" id="mathLock" hidden><b id="mathLockT">30</b>초 쉬었다가 다시 풀어요</div>
+    <div class="row"><button class="btn" id="mathClose" data-focus>상점으로 돌아가기</button></div>
+  </div>
+</div>
+
 <!-- 오답 노트 -->
 <div class="ov dim top" id="note">
   <div class="panel" style="max-width:860px">
@@ -719,6 +781,7 @@ body.big #toast,body.big #banner span{font-size:22px}
 <script src="art/manifest.js"></script>
 <script src="companions.js"></script>
 <script src="questions.js?v=20261124"></script>
+<script src="mathq.js?v=20261124"></script>
 <script src="quiz.js"></script>
 <script src="game.js"></script>
 </body>
