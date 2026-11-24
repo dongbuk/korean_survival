@@ -31,7 +31,11 @@ window.ART_FILES = {
   momonga: 'enemies/momonga.png',     // 데카츠요의 본체 · 매지컬 모몽가 (흑마법)
   bee: 'enemies/bee.png',             // 익스트림 몬스터 · 꿀벌 (침 돌진)
   pinkele: 'enemies/pinkele.png',     // 익스트림 몬스터 · 분홍 코끼리 (물폭탄)
-  ode: 'allies/ode.png',           // E 스킬 동료 오데 (노랑 외눈이)
+  // 새 몬스터 (선생님 몬스터 모음집 16~30, 이미 있는 가위바위보·줄무늬 벌레는 빼고 13종)
+  yamanba: 'enemies/yamanba.png', snake: 'enemies/snake.png', centipede: 'enemies/centipede.png', fugu: 'enemies/fugu.png',
+  chushi: 'enemies/chushi.png', cream: 'enemies/cream.png', antlion: 'enemies/antlion.png', piman: 'enemies/piman.png',
+  soy: 'enemies/soy.png', imomushi: 'enemies/imomushi.png', midori: 'enemies/midori.png', pinkbug: 'enemies/pinkbug.png', tonakai: 'enemies/tonakai.png',
+  ode: 'allies/ode.png',          // E 스킬 동료 오데 (노랑 외눈이)
   sumo: 'allies/sumo.png',         // 세이렌을 쓰러뜨리면 합류하는 섬아저씨 (Q 스킬)
   // 보스를 쓰러뜨리면 고르는 도와줄 친구 (Q·E·R)
   pj_green: 'helpers/pj_green.png', pj_purple: 'helpers/pj_purple.png', pj_pink: 'helpers/pj_pink.png', pj_white: 'helpers/pj_white.png', // 파자마 파티스
