@@ -139,11 +139,21 @@
     normal: { name: '노말', desc: '처음 하는 친구', ehp: 0.75, bhp: 0.6, dmg: 0.6, spawn: 0.8, ev: 0.65, herb: 1.5 },
     hard: { name: '하드', desc: '자신 있는 친구', ehp: 1, bhp: 1, dmg: 1, spawn: 1, ev: 1, herb: 1 },
     extreme: { name: '익스트림', desc: '최강 토벌대', ehp: 1.1, bhp: 1, dmg: 1.1, spawn: 1.1, ev: 1.1, herb: 0.9, bosses: BOSSES_X, last: '매지컬 모몽가' },
+    challenge: { name: '챌린지', desc: '끝없이 버티기 · 랭킹', ehp: 1, bhp: 1, dmg: 1, spawn: 1, ev: 1, herb: 1 }, // 실제 수치는 시간에 따라 노말 → 하드 → 익스트림 (G.chal)
   };
   let selMode = store.get('chii_mode', 'normal');
   if (!DIFF[selMode]) selMode = 'normal';
-  const D = () => DIFF[G.mode] || DIFF.hard;
-  const bossList = () => D().bosses || BOSSES;
+  // 챌린지: 0~3분 노말 · 3~5분 하드 · 5분부터 익스트림, 그 뒤로 10분마다 피해·보스 체력 +100%, 몬스터 수 최대 2배
+  const D = () => {
+    const d = DIFF[G.mode] || DIFF.hard;
+    if (!G.chal || G.clock <= 300) return d;
+    const k = 1 + (G.clock - 300) / 600;
+    return Object.assign({}, d, { dmg: d.dmg * k, bhp: d.bhp * k, spawn: d.spawn * Math.min(2, k), ev: d.ev * Math.min(2, k) });
+  };
+  // 챌린지 보스: 2분마다 끝없이 (한 바퀴 돌 때마다 체력 +30%, 되살아나기 없음)
+  const CHAL_BOSS = [BOSSES[0], BOSSES[1], BOSSES_X[0], BOSSES_X[2], BOSSES[2], BOSSES_X[3]];
+  const chalBoss = (i) => { const B = CHAL_BOSS[i % CHAL_BOSS.length]; return Object.assign({}, B, { at: 120 * (i + 1), final: false, hp2: 0, hp: Math.round(B.hp * (1 + 0.3 * Math.floor(i / CHAL_BOSS.length))) }); };
+  const bossList = () => G && G.chal ? Array.from({ length: G.bossIdx + 1 }, (_, i) => chalBoss(i)) : D().bosses || BOSSES;
   const lastBoss = () => D().last || '검은 별똥별';
   // 익스트림은 하드를 한 번 깨야 열려요 (테스트 모드에선 늘 열림)
   const xOpen = () => testOn || !!store.get('chii_clear_hard', false) || store.get(K_REC, []).some((r) => r.mode === 'hard' && r.win);
@@ -166,6 +176,8 @@
     it_naruto: { only: 'chiikawa', img: 'items/naruto.png', name: '나루토 원반', ic: 'heart', desc: (l) => `몸 주위를 ${l >= 5 ? 4 : l >= 3 ? 3 : 2}개가 빙글빙글 돌며 베어요 · 피해 ${10 + 3 * (l - 1)}` },
     it_tempura: { only: 'hachiware', img: 'items/tempura.png', name: '새우튀김', ic: 'heart', desc: (l) => `던지면 화면 끝에서 튕기며 ${l >= 5 ? 4 : 2.5}초 날아다녀요 · 피해 ${12 + 4 * (l - 1)}${l >= 3 ? ' · 2개' : ''}` },
     it_rocket: { only: 'usagi', img: 'items/rocket.png', name: '쌍둥이 로켓', ic: 'heart', desc: (l) => `적을 쫓아가 펑! · ${l >= 5 ? 4 : l >= 3 ? 3 : 2}발 · 피해 ${18 + 5 * (l - 1)}` },
+    water: { name: '물총', ic: 'water', desc: (l) => `가까운 적 쪽으로 물줄기를 쏴서 줄 위의 적을 모두 멀리 밀어내요 · 피해 ${10 + 4 * (l - 1)}${l >= 3 ? ' · 2줄기' : ''}` },
+    candy: { name: '별사탕 비', ic: 'candy', desc: (l) => `하늘에서 별사탕 ${3 + Math.floor(l / 2)}개가 화면 속 적에게 떨어져 펑! · 피해 ${22 + 6 * (l - 1)}` },
     top: { img: 'items/top.png', name: '팽이', ic: 'wind', desc: (l) => `적 무리에 팽이를 던져 빨아들이며 갈아요 · 피해 ${6 + 2 * (l - 1)}/0.3초${l >= 3 ? ' · 2개' : ''}` },
   };
   // Lv.5가 되면 무기가 진화해요 (새 동작이 하나 더 생겨요)
@@ -175,12 +187,13 @@
     boom: '불꽃 숟가락! 더 크고 불꽃이 남아요', mine: '터질 때 꽃잎 폭탄이 4개 더 터져요',
     rod_chiikawa: '6번 튕기고, 맞을 때마다 작게 터져요', rod_hachiware: '5개를 던지고 끝까지 꿰뚫어요', rod_usagi: '2개를 던지고 떨어진 곳에 충격파가 퍼져요',
     rod_rakko: '돌아올 때 검기 고리가 퍼져요',
+    water: '3줄기로 쏘고, 젖은 적은 느려져요', candy: '떨어진 곳에서 별 조각 3개가 더 튀어요',
     it_naruto: '원반이 크게 펼쳐졌다 돌아와요', it_tempura: '튕길 때마다 작게 터져요', it_rocket: '터질 때 작은 로켓 3개가 더 날아가요', top: '다 돌면 크게 펑!',
   };
   const SUBS = {
     wind: { name: '바람 부적', ic: 'wind', desc: (l) => `낫·비눗방울·몽둥이·꽃폭탄 범위 +${12 * l}%` },
     acorn: { name: '도토리 주머니', ic: 'acorn', desc: (l) => `새총·비눗방울·부메랑 개수 +${Math.ceil(l / 2)}` },
-    shoes: { name: '운동화', ic: 'shoes', desc: (l) => `이동속도 +${8 * l}% · 증표 끌어당기기 +${15 * l}%` },
+    shoes: { name: '운동화', ic: 'shoes', desc: (l) => `이동속도 +${8 * l}% · 증표 끌어당기기 +${15 * l}% · 상태이상 시간 −${10 * l}%` },
   };
 
   // 캐릭터: 무기와 움직임만 달라요. 체력·문제·카드 보상은 모두 같아요.
@@ -539,9 +552,9 @@
       t: 0, clock: 0,
       player: { x: 0, y: 0, px: 0, py: 0, r: 14, hp: charHp(selChar), max: charHp(selChar), inv: 0, fx: 1, fy: 0, moving: false, hurtT: 0 },
       hpGhost: charHp(selChar), ghostHold: 0, car: { ok: selMode === 'extreme' && !!VEH[selChar], cd: 0, t: 0 }, vamp: false, bonus: hardBonus() && !!CHARS[selChar].bonus, sumo: { ok: false, cd: 0, t: 0, x: 0, y: 0, drop: 0, tick: 0 }, slots: [], hx: {}, pickN: 0, pickAt: 0, hshots: [], puddles: [], epud: [],
-      mode: selMode, char: selChar, weapons: Object.assign({ [CHARS[selChar].weapon]: 1 }, WEAP['rod_' + selChar] ? { ['rod_' + selChar]: 1 } : {}), subs: {},
+      mode: selMode === 'challenge' ? 'normal' : selMode, chal: selMode === 'challenge', char: selChar, weapons: Object.assign({ [CHARS[selChar].weapon]: 1 }, WEAP['rod_' + selChar] ? { ['rod_' + selChar]: 1 } : {}), subs: {},
       wcd: { sickle: 0.4, sling: 0.3, bubble: 0, club: 0.6, sword: 0.5, zap: 0, boom: 0, mine: 0, rod_chiikawa: 0.8, rod_hachiware: 0.8, rod_usagi: 1, rod_rakko: 0.6, it_naruto: 0, it_tempura: 0, it_rocket: 0, top: 0 }, slash: null, rods: [],
-      eshots: [], warns: [], fx: [], booms: [], mines: [], waves: [], whirl: null, items: [], tops: [], orbA: 0,
+      eshots: [], warns: [], fx: [], booms: [], mines: [], waves: [], whirl: null, items: [], tops: [], candies: [], orbA: 0,
       arena: null, biome: 0, biomeT: 0, evIdx: 0, pull: null, grabs: [],
       bossIdx: 0, bossesBeaten: 0, rushDone: false, winT: 0, skin: (store.get('chii_shop_v1', {}).eq || {})[selChar] || null,
       ally: { ok: false, cd: 0, t: 0, a: [{ x: 0, y: 0, cd: 0 }, { x: 0, y: 0, cd: 0, jump: null }] },
@@ -564,6 +577,7 @@
   const cntB = () => Math.ceil((G.subs.acorn || 0) / 2);
   const spd = () => T.SPEED * CHARS[G.char].speed * (1 + 0.08 * (G.subs.shoes || 0)) * (G.car.t > 0 ? 1.5 : 1) * (G.hx && G.hx.kani && G.hx.kani.t > 0 ? 1.25 : 1);
   const mag = () => T.MAG * (1 + 0.15 * (G.subs.shoes || 0));
+  const stK = () => 1 / (1 - 0.1 * (G.subs.shoes || 0)); // 운동화 Lv마다 상태이상(돌·느림·거꾸로·끌려감) 시간 −10% → 그만큼 빨리 줄어요
   const fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 
   // 공간 격자 (적끼리 / 공격과 적 충돌)
@@ -856,7 +870,7 @@
     sumo: { name: '섬아저씨', short: '섬아저씨', arts: ['sumo'], col: '#e0a830', cd: () => T.SUMO_CD, desc: '하늘에서 쿵! 큰 피해로 날려 보내고 4초 동안 손바닥 밀치기 · 보스는 잠깐 기절' },
     ode: { name: '오데와 외계인', short: '오데', arts: ['ode', 'thrower'], col: '#f2c14e', cd: () => T.ALLY_CD, desc: '6초 동안 오데는 눈빛 광선, 외계인은 뛰어올라 몽둥이 쾅' },
     pajama: { name: '파자마 파티스', short: '파자마', arts: ['pj_green', 'pj_purple', 'pj_pink', 'pj_white'], col: '#c49af0', cd: () => 30, dur: 6, desc: '6초 동안 둘레에서 춤춰요 · 노래 음표가 적을 쫓고, 춤에 홀린 적은 느려져요 · 마지막에 피날레 쾅' },
-    kuri: { name: '쿠리만쥬와 시사', short: '쿠리·시사', arts: ['kuri', 'shisa'], col: '#e89a5a', cd: () => 30, dur: 5, desc: '쿠리만쥬가 음료를 나눠 체력 조금 회복(약 14), 시사는 만쥬를 던져 펑 터뜨려요' },
+    kuri: { name: '쿠리만쥬와 시사', short: '쿠리·시사', arts: ['kuri', 'shisa'], col: '#e89a5a', cd: () => 30, dur: 5, desc: '쿠리만쥬가 음료를 나눠 체력 조금 회복(약 14) · 돌·느림·거꾸로·끌려감을 바로 풀어 줘요, 시사는 만쥬를 던져 펑 터뜨려요' },
     armor: { name: '갑옷씨들', short: '갑옷씨들', arts: ['armor_silver', 'armor_bronze', 'armor_gold'], col: '#9aa3ad', cd: () => 30, dur: 7, desc: '은갑옷은 방패로 탄을 막고 받는 피해 -40% · 동갑옷은 돌진 베기 · 금갑옷은 땅 내려찍기' },
     yogurt: { name: '꿀맛맨', short: '꿀맛맨', arts: ['yogurt'], col: '#7cc6d8', cd: () => 30, dur: 6, desc: '하늘을 날며 요거트를 쏴요 · 떨어진 곳에 끈적한 요거트 웅덩이(느려지고 계속 피해)' },
     kani: { name: '카니와 모몽가', short: '카니·모몽가', arts: ['kani', 'h_momonga'], col: '#f08fa0', cd: () => 30, dur: 6, desc: '카니는 옆걸음으로 붙어 집게로 싹둑(보스 먼저) · 모몽가는 활공해 급강하 · 그동안 이동 속도 +25%' },
@@ -876,9 +890,15 @@
     S.m = H.arts.map((_, k) => ({ x: P.x + Math.cos(k * TAU / H.arts.length) * 60, y: P.y + Math.sin(k * TAU / H.arts.length) * 40, cd: 0.3 + k * 0.15, hop: 0 }));
     S.m.forEach((m) => { puff(m.x, m.y - 16, 30, '#ffffff'); burst(m.x, m.y - 16, H.col, 10); });
     fx({ k: 'ring', x: P.x, y: P.y - 16, r: 110, col: H.col, w: 8, life: 0.5 });
-    if (id === 'kuri') heal(5); /* 11-24 너프: 10 → 5 */
+    if (id === 'kuri') { heal(5); clearStatus(); } /* 11-24 너프: 10 → 5 */
     if (id === 'kani') P.inv = Math.max(P.inv, 1.2); // 모몽가 활공으로 휙! 잠깐 무적
     banner(H.name + ' 출동!'); Snd.play('cheer'); addTrauma(0.2);
+  }
+  // 쿠리만쥬 음료: 돌(스턴)·느림·거꾸로 저주·끌려감을 바로 풀어요
+  function clearStatus() {
+    const P = G.player, had = P.stunT > 0 || P.slowT > 0 || G.curse > 0 || !!G.pull;
+    P.stunT = 0; P.slowT = 0; G.curse = 0; G.pull = null;
+    if (had) { addNum(P.x, P.y - 56, '상태이상 풀림!', '#7cc48a', 17); burst(P.x, P.y - 16, '#bff0c8', 12); }
   }
   function addHelper(id) {
     if (G.slots.includes(id) || G.slots.length >= 3) return;
@@ -936,7 +956,7 @@
         const [ku, si] = S.m;
         ku.x += (P.x - 46 - ku.x) * k; ku.y += (P.y - 8 - ku.y) * k; si.x += (P.x + 46 - si.x) * k; si.y += (P.y - 8 - si.y) * k;
         S.tick -= dt;
-        if (S.tick <= 0) { S.tick = 2; heal(3); /* 11-24 너프: 1.5초마다 6 → 2초마다 3 */ fx({ k: 'ring', x: P.x, y: P.y - 16, r: 40, col: '#ffe0a0', w: 4, life: 0.4 }); burst(ku.x + 14, ku.y - 40, '#8fd0ff', 5); }
+        if (S.tick <= 0) { S.tick = 2; heal(3); clearStatus(); /* 11-24 너프: 1.5초마다 6 → 2초마다 3 */ fx({ k: 'ring', x: P.x, y: P.y - 16, r: 40, col: '#ffe0a0', w: 4, life: 0.4 }); burst(ku.x + 14, ku.y - 40, '#8fd0ff', 5); }
         si.cd -= dt;
         if (si.cd <= 0) { const c = nearestN(si.x, si.y, 420, 4), t = c[Math.floor(G.rng() * c.length)]; si.cd = t ? 0.7 : 0.2; if (t) G.hshots.push({ k: 'bun', x: si.x, y: si.y - 30, x0: si.x, y0: si.y - 30, x1: t.x, y1: t.y, q: 0, dur: 0.55, dmg: 34, r: 72, col: '#e8a860' }); }
       } else if (id === 'armor') {
@@ -1085,7 +1105,16 @@
     const P = G.player;
     G.t += dt;
     if (G.winT > 0) { G.winT -= dt; updFx(dt); if (G.winT <= 0) endRun(true); return; }
-    if (!G.boss) G.clock = Math.min(T.RUN, G.clock + dt);
+    if (G.chal) {
+      // 챌린지: 시계가 멈추지 않고 끝도 없어요. 시간에 따라 난이도가 올라가요
+      G.clock += dt;
+      const m = G.clock < 180 ? 'normal' : G.clock < 300 ? 'hard' : 'extreme';
+      if (m !== G.mode) {
+        G.mode = m; Snd.play('warn'); addTrauma(0.3);
+        banner(m === 'hard' ? '3분 버텼어요! 이제 하드 수준' : '5분 버텼어요! 이제 익스트림 수준 · 점점 더 세져요');
+        if (m === 'extreme' && VEH[G.char] && !G.car.ok) { G.car.ok = true; toast(usingTouch ? `오른쪽 아래 ${VEH[G.char].name} 버튼을 쓸 수 있어요` : `Shift 키로 ${VEH[G.char].name}를 탈 수 있어요`, 4000); }
+      }
+    } else if (!G.boss) G.clock = Math.min(T.RUN, G.clock + dt);
     G.zp *= Math.exp(-6 * dt);
     for (const f of G.puffs) f.t += dt;
     G.puffs = G.puffs.filter((f) => f.t < 0.3);
@@ -1136,7 +1165,7 @@
       if (m > 0.15) { const s = (m - 0.15) / 0.85; mx = (dx / len) * s; my = (dy / len) * s; }
     }
     if (G.botMv) { mx = G.botMv.x; my = G.botMv.y; } // QA 밸런스 봇 전용 (?qa=1)
-    if (G.curse > 0) { G.curse -= dt; mx = -mx; my = -my; } // 모몽가의 거꾸로 저주
+    if (G.curse > 0) { G.curse -= dt * stK(); mx = -mx; my = -my; } // 모몽가의 거꾸로 저주
     if (G.dark > 0) G.dark -= dt;
     const ml = Math.hypot(mx, my);
     P.moving = ml > 0.02;
@@ -1145,7 +1174,7 @@
     P.x += mx * spd() * slowK * dt; P.y += my * spd() * slowK * dt;
     // 긴팔·세이렌 노래에 붙잡히면 끌려가요
     if (G.pull) {
-      const pl = G.pull; pl.t -= dt;
+      const pl = G.pull; pl.t -= dt * stK();
       const dx = pl.x - P.x, dy = pl.y - P.y, d = Math.hypot(dx, dy) || 1;
       if (d > 30) { P.x += dx / d * pl.v * dt; P.y += dy / d * pl.v * dt; }
       if (pl.src && pl.src.dead) pl.t = 0;
@@ -1157,7 +1186,7 @@
       const A = G.arena, dx = P.x - A.x, dy = P.y - A.y, d = Math.hypot(dx, dy) || 1, lim = A.r - P.r - 4;
       if (d > lim) { P.x = A.x + dx / d * lim; P.y = A.y + dy / d * lim; if (Math.random() < 0.15) burst(P.x, P.y - 6, BIOMES[G.biome].fence, 2); }
     }
-    P.inv -= dt; P.hurtT -= dt; P.stunT = (P.stunT || 0) - dt; P.slowT = (P.slowT || 0) - dt;
+    P.inv -= dt; P.hurtT -= dt; P.stunT = (P.stunT || 0) - dt * stK(); P.slowT = (P.slowT || 0) - dt * stK();
     if (P.hp < G.hpGhost) { G.ghostHold -= dt; if (G.ghostHold <= 0) G.hpGhost = Math.max(P.hp, G.hpGhost - 60 * dt); } else G.hpGhost = P.hp;
 
     // 몬스터 생성
@@ -1408,6 +1437,51 @@
         Snd.play('dash', 1.5);
       }
     }
+    // 물총: 가까운 적 쪽으로 물줄기 → 줄 위의 적을 모두 세게 밀어내요 (Lv.3 2줄기 · Lv.5 3줄기 + 젖으면 느려짐)
+    const lwa = G.weapons.water;
+    if (lwa && G.wcd.water <= 0) {
+      const t0 = nearestN(P.x, P.y, 380, 1)[0];
+      if (!t0) G.wcd.water = 0.2;
+      else {
+        G.wcd.water = 1.7 - 0.1 * (lwa - 1);
+        const a0 = Math.atan2(t0.y - P.y, t0.x - P.x), L = 300 * area(), dmg = 10 + 4 * (lwa - 1);
+        const fan = lwa >= 5 ? [-0.3, 0, 0.3] : lwa >= 3 ? [-0.15, 0.15] : [0];
+        for (const da of fan) {
+          const a = a0 + da, ux = Math.cos(a), uy = Math.sin(a), x0 = P.x, y0 = P.y - 14;
+          near(x0 + ux * L / 2, y0 + uy * L / 2, L / 2 + 40, (e) => {
+            if (e.dead) return;
+            const q = (e.x - x0) * ux + (e.y - y0) * uy, side = Math.abs((e.x - x0) * uy - (e.y - y0) * ux);
+            if (q < 0 || q > L || side > 22 + e.r) return;
+            hurtEnemy(e, dmg, x0, y0, 340);
+            if (lwa >= 5) e.slow = Math.max(e.slow, e.type === 'boss' ? 0.05 : 0.3);
+          });
+          fx({ k: 'beam', x1: x0, y1: y0, x2: x0 + ux * L, y2: y0 + uy * L, col: '#7fc8ff', w: 14, life: 0.22 });
+          for (let i = 0; i < 4; i++) G.parts.push({ x: x0 + ux * L * (0.3 + i * 0.22), y: y0 + uy * L * (0.3 + i * 0.22), vx: (Math.random() - 0.5) * 80, vy: -40 - Math.random() * 60, t: 0, life: 0.4, col: '#bfe6ff', r: 3 });
+        }
+        Snd.play('bubble', 1.6);
+      }
+    }
+    // 별사탕 비: 화면 속 적 몇 마리 위로 별사탕이 떨어져 펑 (Lv.5 별 조각 3개 더)
+    const lca = G.weapons.candy;
+    if (lca && G.wcd.candy <= 0) {
+      const pool = nearestN(P.x, P.y, viewR() * 0.8, 12);
+      if (!pool.length) G.wcd.candy = 0.3;
+      else {
+        G.wcd.candy = 3.2 - 0.2 * (lca - 1);
+        const n = 3 + Math.floor(lca / 2);
+        for (let i = 0; i < n; i++) { const e = pool[Math.floor(G.rng() * pool.length)]; G.candies.push({ x: e.x + (G.rng() - 0.5) * 30, y: e.y + (G.rng() - 0.5) * 30, t: -i * 0.12, fall: 0.5 }); }
+      }
+    }
+    for (const c of G.candies) {
+      c.t += dt;
+      if (c.t >= c.fall) {
+        c.done = true;
+        const R = 50 * area(), dmg = 22 + 6 * (lca - 1);
+        boomAt(c.x, c.y, R, dmg, '#ffd23f');
+        if (lca >= 5) for (let i = 0; i < 3; i++) { const a = G.rng() * TAU; boomAt(c.x + Math.cos(a) * R * 1.1, c.y + Math.sin(a) * R * 1.1, R * 0.5, dmg * 0.4, '#ffb3d1'); }
+      }
+    }
+    G.candies = G.candies.filter((c) => !c.done);
     // 팽이: 적 무리 쪽으로 던지면 빙글빙글 돌며 빨아들여요
     const lp = G.weapons.top;
     if (lp && G.wcd.top <= 0) {
@@ -2375,7 +2449,7 @@
   }
   function openQuiz(kind, given) {
     setState('quiz'); clearInput();
-    const nq = given || G.sched.next(G.clock / T.RUN);
+    const nq = given || G.sched.next(Math.min(1, G.clock / T.RUN));
     const it = nq.item;
     quiz = { kind, nq, t0: performance.now(), answered: false, hint: false };
     $('quizKind').innerHTML = ico(kind === 'boss' ? 'crown' : kind === 'review' ? 'note' : 'gem') + escapeHtml(quizTitle(kind)); $('quizKind').className = 'qkind ' + kind;
@@ -2646,7 +2720,7 @@
       date: new Date().toISOString(), nick: ($('nick').value || '').trim() || '이름없음', win, cause: win ? '성공' : cause,
       clock: Math.floor(G.clock), kills: G.kills, level: G.level, n: s.n, correct: s.correct, avgSec: +s.avgSec.toFixed(1),
       reaskN: s.reaskN, reaskCorrect: s.reaskCorrect, byTag: s.byTag,
-      wrong: s.wrong.map((w) => ({ tag: w.tag, q: w.q, chosen: w.chosen, ans: w.ans })), seed: G.seed, char: G.char, mode: G.mode,
+      wrong: s.wrong.map((w) => ({ tag: w.tag, q: w.q, chosen: w.chosen, ans: w.ans })), seed: G.seed, char: G.char, mode: G.chal ? 'challenge' : G.mode,
     };
     let unlockedNow = null;
     if (G.test) {
@@ -2665,10 +2739,10 @@
     store.set(K_REC, all.slice(-300));
 
     $('resIco').innerHTML = ico(win ? 'trophy' : 'skull');
-    $('resTitle').textContent = CHARS[G.char].name + ' · ' + DIFF[G.mode].name + ' · ' + (win ? '토벌 성공! ' + lastBoss() + '을(를) 물리쳤어요' : '토벌 실패 · ' + cause);
+    $('resTitle').textContent = G.chal ? CHARS[G.char].name + ' · 챌린지 · ' + fmt(G.clock) + ' 버텼어요!' : CHARS[G.char].name + ' · ' + DIFF[G.mode].name + ' · ' + (win ? '토벌 성공! ' + lastBoss() + '을(를) 물리쳤어요' : '토벌 실패 · ' + cause);
     const pct = s.n ? Math.round(s.rate * 100) + '%' : '-';
     $('resStat').innerHTML = [
-      ['버틴 시간', fmt(G.clock) + ' / ' + fmt(T.RUN), 'clock'], ['쓰러뜨린 보스', `${G.bossesBeaten} / ${bossList().length}`, 'crown'], ['쫓아낸 몬스터', G.kills, 'monster'], ['레벨', G.level, 'gem'],
+      ['버틴 시간', G.chal ? fmt(G.clock) : fmt(G.clock) + ' / ' + fmt(T.RUN), 'clock'], ['쓰러뜨린 보스', G.chal ? G.bossesBeaten + '마리' : `${G.bossesBeaten} / ${bossList().length}`, 'crown'], ['쫓아낸 몬스터', G.kills, 'monster'], ['레벨', G.level, 'gem'],
       ['정답률', `${pct} (${s.correct}/${s.n})`, 'check'], ['평균 풀이', s.avgSec.toFixed(1) + '초', 'pencil'], ['다시 도전 정답', `${s.reaskCorrect}/${s.reaskN}`, 'retry'],
     ].map((a, i) => `<div style="animation-delay:${i * 60}ms">${ico(a[2])}<b>${a[1]}</b><span>${a[0]}</span></div>`).join('');
     const tags = Object.keys(s.byTag);
@@ -2679,7 +2753,8 @@
     updateNoteBtns();
     // 동료 만나기 (도감 수집. 강해지지는 않아요)
     const met = meetCompanions(win, s.correct);
-    document.querySelectorAll('#result .unlock, #result .meet').forEach((el) => el.remove());
+    document.querySelectorAll('#result .unlock, #result .meet, #result .rank').forEach((el) => el.remove());
+    if (G.chal) { const rk = addRank(rec); $('resStat').insertAdjacentHTML('afterend', rankHtml(rk.list, rk.pos)); }
     if (met.length) {
       $('resStat').insertAdjacentHTML('afterend', '<div class="meet">' + met.map((c, i) =>
         `<div class="meetcard" style="animation-delay:${0.4 + i * 0.25}s"><span class="new">새 동료!</span><img src="art/${c.img}${VQ}" alt=""><div class="nm">${escapeHtml(c.name)}</div></div>`).join('') + '</div>');
@@ -2694,10 +2769,26 @@
     if (unlockedNow) setTimeout(() => Snd.play('cheer'), 700);
   }
 
+  // 챌린지 랭킹: 이 기기에 저장 (버틴 시간 → 쫓아낸 몬스터 순) · 상위 50개
+  const K_RANK = 'chii_chal_rank_v1';
+  function addRank(r) {
+    const list = store.get(K_RANK, []), me = { nick: r.nick, char: r.char, t: r.clock, kills: r.kills, date: r.date };
+    list.push(me); list.sort((a, b) => b.t - a.t || b.kills - a.kills);
+    store.set(K_RANK, list.slice(0, 50));
+    return { list, pos: list.indexOf(me) };
+  }
+  function rankHtml(list, pos, title) {
+    if (!list.length) return '<div class="rank"><p class="sub">아직 챌린지 기록이 없어요.</p></div>';
+    const row = (r, i) => `<tr${i === pos ? ' class="me"' : ''}><td>${i < 3 ? ico('trophy') : ''}${i + 1}위</td><td>${escapeHtml(r.nick)}</td><td>${(CHARS[r.char] || CHARS.chiikawa).name}</td><td><b>${fmt(r.t)}</b></td><td>${r.kills}</td></tr>`;
+    const head = pos === 0 ? `${ico('party')} 새 1등!` : pos > 0 ? `내 순위 ${pos + 1}위` : '';
+    return `<div class="rank"><h2>${ico('trophy')}${title || '챌린지 랭킹'} ${head ? `<span class="sub">· ${head}</span>` : ''}</h2><table><tr><th>순위</th><th>별명</th><th>캐릭터</th><th>버틴 시간</th><th>쫓아낸 몬스터</th></tr>` +
+      list.slice(0, 10).map(row).join('') + (pos >= 10 ? row(list[pos], pos) : '') + '</table></div>';
+  }
   function renderRecords() {
     const all = store.get(K_REC, []).slice().reverse();
-    if (!all.length) { $('recTable').innerHTML = '<p class="sub">아직 기록이 없어요.</p>'; return; }
-    $('recTable').innerHTML = '<table><tr><th>날짜</th><th>별명</th><th>캐릭터</th><th>모드</th><th>결과</th><th>시간</th><th>정답률</th><th>평균</th><th>틀린 유형</th></tr>' +
+    const rk = rankHtml(store.get(K_RANK, []), -1, '챌린지 랭킹 (이 기기)');
+    if (!all.length) { $('recTable').innerHTML = rk + '<p class="sub">아직 기록이 없어요.</p>'; return; }
+    $('recTable').innerHTML = rk + '<table><tr><th>날짜</th><th>별명</th><th>캐릭터</th><th>모드</th><th>결과</th><th>시간</th><th>정답률</th><th>평균</th><th>틀린 유형</th></tr>' +
       all.slice(0, 100).map((r) => {
         const wt = {}; r.wrong.forEach((w) => { wt[w.tag] = (wt[w.tag] || 0) + 1; });
         return `<tr><td>${r.date.slice(5, 16).replace('T', ' ')}</td><td>${escapeHtml(r.nick)}</td><td>${(CHARS[r.char] || CHARS.chiikawa).name}</td><td>${(DIFF[r.mode] || DIFF.hard).name}</td><td>${escapeHtml(r.cause)}</td><td>${fmt(r.clock)}</td>` +
@@ -2845,6 +2936,13 @@
       ctx.globalAlpha = blink ? 0.45 : 0.3; ctx.fillStyle = '#e8746c'; ctx.fillRect(0, -b.r, len, b.r * 2);
       ctx.globalAlpha = 0.8; ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3; ctx.strokeRect(0, -b.r, len, b.r * 2);
       ctx.restore(); ctx.globalAlpha = 1;
+    }
+    // 별사탕 비: 땅에 그림자 → 하늘에서 빙글 떨어져요
+    for (const c of G.candies) {
+      if (c.t < 0 || !vis(c.x, c.y)) continue;
+      const q = c.t / c.fall, h = (1 - q) * 280, s = 30;
+      ctx.globalAlpha = 0.25 + q * 0.35; ctx.fillStyle = '#4a3b35'; ctx.beginPath(); ctx.ellipse(c.x, c.y, 10 + q * 12, 5 + q * 5, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.save(); ctx.translate(c.x, c.y - h - s / 2); ctx.rotate(c.t * 9); drawIco('candy', -s / 2, -s / 2, s); ctx.restore();
     }
     // 꽃폭탄
     for (const m of G.mines) {
@@ -3200,7 +3298,7 @@
       else if (f.k === 'flash') { ctx.globalAlpha = a * 0.8; const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r); g.addColorStop(0, f.col); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); }
       else if (f.k === 'beam') {
         ctx.globalAlpha = a; ctx.lineCap = 'round';
-        ctx.strokeStyle = f.col; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(f.x1, f.y1); ctx.lineTo(f.x2, f.y2); ctx.stroke();
+        ctx.strokeStyle = f.col; ctx.lineWidth = f.w || 9; ctx.beginPath(); ctx.moveTo(f.x1, f.y1); ctx.lineTo(f.x2, f.y2); ctx.stroke();
         ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
       } else if (f.k === 'bolt') {
         ctx.globalAlpha = a; ctx.lineJoin = 'round';
@@ -3426,17 +3524,20 @@
       ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx0 + cw / 2, cy0 + 17); ctx.lineTo(cx0 + cw / 2, cy0 + 33); ctx.stroke();
       drawIco(b.final ? 'skull' : 'crown', cx0 - 16, cy0 + 6, 36);
       ctx.font = fs(16); outText(b.name + (b.st === 'stun' ? ' · 기절!' : b.enr ? ' · 화남!' : ''), ccx, cy0 + 4);
-      drawIco('pause', ccx - 62, cy0 + 40, 16); ctx.font = fs(13); outText(`시계 멈춤 ${fmt(G.clock)}`, ccx + 8, cy0 + 49);
+      drawIco('pause', ccx - 62, cy0 + 40, 16); ctx.font = fs(13); outText(G.chal ? `버틴 시간 ${fmt(G.clock)}` : `시계 멈춤 ${fmt(G.clock)}`, ccx + 8, cy0 + 49);
     } else {
       const nb = bossList()[G.bossIdx], soon = nb && nb.at - G.clock < 10;
       rrect(ccx - 84, cy0, 168, 32, 16); ctx.fillStyle = soon ? '#fde8e6' : 'rgba(255,250,243,.95)'; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#4a3b35'; ctx.stroke();
       drawIco('clock', ccx - 80, cy0 + 2, 28);
-      ctx.fillStyle = '#4a3b35'; ctx.font = fs(19); ctx.fillText(`${fmt(G.clock)} / ${fmt(T.RUN)}`, ccx + 14 + (soon ? Math.sin(t * 20) * 1.2 : 0), cy0 + 17);
+      ctx.fillStyle = '#4a3b35'; ctx.font = fs(19); ctx.fillText(G.chal ? `${fmt(G.clock)} · ${DIFF[G.mode].name}` : `${fmt(G.clock)} / ${fmt(T.RUN)}`, ccx + 14 + (soon ? Math.sin(t * 20) * 1.2 : 0), cy0 + 17);
       const ty = cy0 + 44;
       rrect(cx0, ty - 4, cw, 8, 4); ctx.fillStyle = 'rgba(74,59,53,.35)'; ctx.fill();
+      if (G.chal) { rrect(cx0, ty - 4, Math.max(8, cw * Math.min(1, Math.max(0, 1 - (nb.at - G.clock) / 120))), 8, 4); ctx.fillStyle = '#f2c14e'; ctx.fill(); drawIco('crown', cx0 + cw - 10, ty - 10, 20); }
+      else {
       rrect(cx0, ty - 4, Math.max(8, cw * Math.min(1, G.clock / T.RUN)), 8, 4); ctx.fillStyle = '#f2c14e'; ctx.fill();
       if (!G.rushDone) drawIco('monster', cx0 + cw * (T.RUSH_AT / T.RUN) - 9, ty - 9, 18);
-      bossList().forEach((B, i) => { if (i < G.bossIdx) return; const s = B.final ? 26 : 20; drawIco(B.final ? 'skull' : 'crown', cx0 + cw * (B.at / T.RUN) - s / 2, ty - s / 2, s); });
+      }
+      if (!G.chal) bossList().forEach((B, i) => { if (i < G.bossIdx) return; const s = B.final ? 26 : 20; drawIco(B.final ? 'skull' : 'crown', cx0 + cw * (B.at / T.RUN) - s / 2, ty - s / 2, s); });
       if (soon) { ctx.font = fs(13); outText('곧 보스!', ccx, ty + 18, '#ffd0c8'); }
     }
     // 오른쪽 위: 쫓아낸 수 (쉬기 버튼 왼쪽)
@@ -3537,11 +3638,17 @@
       }
       b.className = 'mode m-' + k + (k === selMode ? ' on' : '');
       b.setAttribute('aria-pressed', String(k === selMode));
-      b.innerHTML = `${ico(k === 'normal' ? 'heart' : 'skull')}<span class="nm">${DIFF[k].name}</span><span class="ds">${DIFF[k].desc}</span>`;
+      const best = k === 'challenge' && store.get(K_RANK, [])[0];
+      b.innerHTML = `${ico(k === 'normal' ? 'heart' : k === 'challenge' ? 'trophy' : 'skull')}<span class="nm">${DIFF[k].name}</span><span class="ds">${best ? '1등 ' + escapeHtml(best.nick) + ' ' + fmt(best.t) : DIFF[k].desc}</span>`;
       b.addEventListener('click', () => { Snd.unlock(); selMode = k; store.set('chii_mode', k); Snd.play('card'); renderModes(); });
       box.appendChild(b);
     });
     // 오늘의 토벌 의뢰: 고른 모드의 보스 순서
+    if (selMode === 'challenge') {
+      $('qBody').innerHTML = '끝없이 몰려오는 몬스터와 보스를 <b>얼마나 오래</b> 버틸까요? 2분마다 보스!';
+      $('qSteps').innerHTML = [[0, '노말'], [180, '하드'], [300, '익스트림 · 점점 더 세져요']].map(([at, n], i) => `<span${i === 2 ? ' class="last"' : ''}><b>${fmt(at)}</b> ${n}</span>`).join('');
+      return;
+    }
     const M = DIFF[selMode], L = M.bosses || BOSSES, fin = '검은 별똥별';
     $('qBody').innerHTML = M.bosses ? '10분 버티고 <b>데카츠요</b>의 정체를 밝혀요!' : `10분 버티고 <b>${fin}</b> 물리치기!`;
     const steps = L.map((B) => [B.at, B.name.replace(' (의태형)', '')]);

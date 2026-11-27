@@ -22,6 +22,8 @@
     zap: sh('M28 3 L9 27 L22 27 L17 45 L39 18 L26 18 L32 3 Z', '#ffe066'),
     boom: `<ellipse cx="16" cy="16" rx="11" ry="8" transform="rotate(-45 16 16)" fill="#e3eef5" stroke="${K}" stroke-width="3"/>` + ln('M22 22 L41 41', '#e3eef5', 5) + shine('M11 15 Q13 11 17 10'),
     mine: ln('M24 30 L24 44', '#7cc48a', 4) + petals() + ci(24, 23, 6, '#ffe066'),
+    water: sh('M5 18 L31 18 L35 14 L41 14 L41 24 L31 24 L27 28 L27 38 L18 38 L18 24 L5 24 Z', '#7fb3ff') + ci(44, 19, 2.5, '#bfe6ff', 2) + ci(46, 26, 2, '#bfe6ff', 2) + shine('M9 20 L28 20'),
+    candy: sh(star(20, 29, 15, 7, 5), '#ffe066') + sh(star(37, 13, 9, 4, 5), '#ffb3d1') + thin('M30 40 L36 36 M40 26 L44 23', K, 2.5),
     // 보조 도구 · 회복
     wind: sh('M7 41 C7 18 22 6 42 6 C42 26 30 41 7 41 Z', '#9be07a') + thin('M9 39 L33 15') + thin('M19 29 L19 21 M26 22 L31 22', K, 2),
     acorn: ln('M24 13 L26 7', '#8a5a3b', 3) + sh('M14 22 L34 22 C34 34 28 43 24 43 C20 43 14 34 14 22 Z', '#e7b67e') + sh('M10 22 C10 13 38 13 38 22 Z', '#8a5a3b') + shine('M18 27 Q18 33 21 37'),
